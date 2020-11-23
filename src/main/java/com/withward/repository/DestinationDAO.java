@@ -12,11 +12,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DestinationRepository {
+public class DestinationDAO {
 	public ArrayList<Destination> getAll(Integer withlist_id) {
 
 		ArrayList<Destination> destinations = new ArrayList<Destination>();
-		String sql = "SELECT *  " + "FROM destination " + "WHERE withlist_id = ?";
+		String sql = "SELECT * " + "FROM destination " + "WHERE withlist_id = ?";
 
 		try (Connection connection = JDBC.getConnection()) {
 			PreparedStatement stmt = connection.prepareStatement(sql);

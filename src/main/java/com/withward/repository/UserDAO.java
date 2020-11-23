@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import com.withward.model.User;
 import com.withward.util.JDBC;
 
-public class UserRepository {
+public class UserDAO {
 	public ArrayList<User> getAll() {
 
 		ArrayList<User> users = new ArrayList<User>();
-		String sql = "SELECT * " + "FROM user";
+		String sql = "SELECT * " + "FROM users";
 
 		try (Connection connection = JDBC.getConnection()) {
 			Statement stmt = connection.createStatement();
@@ -24,8 +24,8 @@ public class UserRepository {
 				String username = rs.getString("username");
 				String email = rs.getString("email");
 				String password = rs.getString("password");
-				String homeLocation = rs.getString("homeLocation");
-				User user = new User(id, username, email, password, homeLocation);
+				String photo = rs.getString("photo");
+				User user = new User(id, username, email, password, photo);
 				users.add(user);
 			}
 		} catch (SQLException e) {
@@ -67,18 +67,18 @@ public class UserRepository {
 	public User getUser(Integer userId) {
 
 		User user = null;
-		String sql = "SELECT * " + "FROM user " + "WHERE id = ?";
+		String sql = "SELECT * " + "FROM users " + "WHERE id = ?";
 		try (Connection connection = JDBC.getConnection()) {
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setInt(1, userId);
-			ResultSet rs = stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				Integer id = rs.getInt("id");
 				String username = rs.getString("username");
 				String email = rs.getString("email");
 				String password = rs.getString("password");
-				String homeLocation = rs.getString("homeLocation");
-				user = new User(id, username, email, password, homeLocation);
+				String photo = rs.getString("photo");
+				user = new User(id, username, email, password, photo);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -88,8 +88,8 @@ public class UserRepository {
 		return user;
 	}
 	
-	public void insertUser(User user) {
-		String sql = "INSERT INTO user "
+	public User insertUser(User user) {
+		String sql = "INSERT INTO users "
 				+ "(username, email, password, photo) " + "VALUES "
 				+ "(?,?,?,?)";
 
@@ -106,28 +106,28 @@ public class UserRepository {
 				throw new SQLException("Inserting user failed, no rows were affected");
 			}
 
-//			int autoId = 0;
-//			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-//			if (generatedKeys.next()) {
-//				autoId = generatedKeys.getInt(1);
-//			} else {
-//				throw new SQLException("Inserting user failed, no ID generated.");
-//			}
+			int autoId = 0;
+			ResultSet generatedKeys = pstmt.getGeneratedKeys();
+			if (generatedKeys.next()) {
+				autoId = generatedKeys.getInt(1);
+			} else {
+				throw new SQLException("Inserting user failed, no ID generated.");
+			}
 
 			connection.commit();
-
+			return new User(autoId, user.getUsername(),user.getEmail(),user.getPassword(),user.getPhoto());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-//		String sql = "INSERT INTO user (username, email, password
+		return null;
 	}
 	
-	public void updateUser(User user) {
-		String sql = "UPDATE user " 
+	public User updateUser(User user) {
+		String sql = "UPDATE users " 
 				+ "SET username = ?, " 
 				+ "email = ?, "
 				+ "password = ?, " 
-				+ "photo = ?, " 
+				+ "photo = ? " 
 				+ "WHERE id = ?";
 		
 		try (Connection connection = JDBC.getConnection()) {
@@ -144,30 +144,34 @@ public class UserRepository {
 				throw new SQLException("Inserting destination failed, no rows were affected");
 			}
 
-//			int autoId = 0;
-//			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-//			if (generatedKeys.next()) {
-//				autoId = generatedKeys.getInt(1);
-//			} else {
-//				throw new SQLException("Inserting destination failed, no ID generated.");
-//			}
-
+			int autoId = 0;
+			ResultSet generatedKeys = pstmt.getGeneratedKeys();
+			if (generatedKeys.next()) {
+				autoId = generatedKeys.getInt(1);
+			} else {
+				throw new SQLException("Inserting destination failed, no ID generated.");
+			}
 			connection.commit();
-
+			
+			return new User(autoId, user.getUsername(),user.getEmail(),user.getPassword(),user.getPhoto());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return null;
+
 	}
 	
 	public void deleteOne(Integer user_id) {
 		
-		String sql = "DELETE FROM user WHERE ID = ?";
+		String sql = "DELETE FROM users WHERE ID = ?";
 		
 		try (Connection connection = JDBC.getConnection()) {
 			
 			connection.setAutoCommit(false);
 			PreparedStatement pstmt = connection.prepareStatement(sql);
 			pstmt.setInt(1, user_id);
+			
+			pstmt.execute();
 			connection.commit();
 
 		} catch (SQLException e) {

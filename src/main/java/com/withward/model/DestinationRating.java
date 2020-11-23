@@ -1,14 +1,26 @@
 package com.withward.model;
 
-public class DestinationUser {
+// basically a rating
+// TODO: 
+public class DestinationRating {
 
 	private Integer id;
 	private Integer destination_id;
 	private Integer user_id;
 	private Float rating;
 	
-	public DestinationUser(Integer id, Integer destination_id, Integer user_id, Float rating) {
+	public DestinationRating() {
+		super();
+	}
+	
+	public DestinationRating(Integer id, Integer destination_id, Integer user_id, Float rating) {
 		this.id = id;
+		this.destination_id = destination_id;
+		this.user_id = user_id;
+		this.rating = rating;
+	}
+	
+	public DestinationRating(Integer destination_id, Integer user_id, Float rating) {
 		this.destination_id = destination_id;
 		this.user_id = user_id;
 		this.rating = rating;

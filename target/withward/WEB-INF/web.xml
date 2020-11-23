@@ -11,8 +11,28 @@
 		<description></description>
 		<servlet-class>com.withward.servlets.UserServlet</servlet-class>
 	</servlet>
-		<servlet-mapping>
+	<servlet>
+		<servlet-name>DestinationServlet</servlet-name>
+		<display-name>DestinationServlet</display-name>
+		<description></description>
+		<servlet-class>com.withward.servlets.DestinationServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>WithlistServlet</servlet-name>
+		<display-name>WithlistServlet</display-name>
+		<description></description>
+		<servlet-class>com.withward.servlets.WithlistServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
 		<servlet-name>UserServlet</servlet-name>
-		<url-pattern>/users</url-pattern>
+		<url-pattern>/users/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DestinationServlet</servlet-name>
+		<url-pattern>/destinations</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>WithlistServlet</servlet-name>
+		<url-pattern>/withlists</url-pattern>
 	</servlet-mapping>
 </web-app>

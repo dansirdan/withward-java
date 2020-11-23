@@ -2,10 +2,10 @@ package com.withward.service;
 import java.util.ArrayList;
 
 import com.withward.model.Withlist;
-import com.withward.repository.WithlistRepository;
+import com.withward.repository.WithlistDAO;
 
 public class WithlistService {
-	private WithlistRepository wlRepo = new WithlistRepository();
+	private WithlistDAO wlRepo = new WithlistDAO();
 	
 	public ArrayList<Withlist> getAllWithlists(Integer userId) {
 		return wlRepo.getAll(userId);
@@ -13,6 +13,10 @@ public class WithlistService {
 	
 	public Withlist getOneWithlist(Integer withlistId) {
 		return wlRepo.getWithlist(withlistId);
+	}
+	
+	public boolean isAdmin(Integer user_id, Integer withlist_id) {
+		return wlRepo.isAdmin(user_id, withlist_id);
 	}
 	
 	public void createWithlist(Withlist withlist) {

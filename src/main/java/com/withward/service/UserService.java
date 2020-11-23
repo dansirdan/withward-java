@@ -2,11 +2,11 @@ package com.withward.service;
 import java.util.ArrayList;
 
 import com.withward.model.User;
-import com.withward.repository.UserRepository;
+import com.withward.repository.UserDAO;
 
 public class UserService {
 
-	private UserRepository userRepository = new UserRepository();
+	private UserDAO userRepository = new UserDAO();
 	
 	public ArrayList<User> getAllUsers() {
 		return userRepository.getAll();
@@ -16,12 +16,12 @@ public class UserService {
 		return userRepository.getUser(userId);
 	}
 	
-	public void createUser(User user) {
-		userRepository.insertUser(user);
+	public User createUser(User user) {
+		return userRepository.insertUser(user);
 	}
 	
-	public void updateUser(User user) {
-		userRepository.updateUser(user);
+	public User updateUser(User user) {
+		return userRepository.updateUser(user);
 	}
 	
 	public void deleteUser(Integer userId) {

@@ -7,8 +7,18 @@ public class Withlist {
 	private String title;
 	private String description;
 
+	public Withlist() {
+		super();
+	}
+	
 	public Withlist(Integer id, Integer ownerId, String title, String description) {
 		this.id = id;
+		this.ownerId = ownerId;
+		this.title = title;
+		this.description = description;
+	}
+	
+	public Withlist(Integer ownerId, String title, String description) {
 		this.ownerId = ownerId;
 		this.title = title;
 		this.description = description;

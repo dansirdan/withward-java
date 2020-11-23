@@ -11,9 +11,25 @@ public class Destination {
 	private Float averageRating;
 	private Integer user_id;
 
+	public Destination() {
+		super();
+	}
+	
 	public Destination(Integer id, Integer withlist_id, String name, String description, String photo,
 			boolean completed, Float averageRating, Integer user_id) {
 		this.id = id;
+		this.withlist_id = withlist_id;
+		this.name = name;
+		this.description = description;
+		this.photo = photo;
+		this.completed = completed;
+		this.averageRating = averageRating;
+		this.user_id = user_id;
+
+	}
+	
+	public Destination(Integer withlist_id, String name, String description, String photo,
+			boolean completed, Float averageRating, Integer user_id) {
 		this.withlist_id = withlist_id;
 		this.name = name;
 		this.description = description;

@@ -2,11 +2,11 @@ package com.withward.service;
 import java.util.ArrayList;
 
 import com.withward.model.Destination;
-import com.withward.repository.DestinationRepository;
+import com.withward.repository.DestinationDAO;
 
 public class DestinationService {
 
-	private DestinationRepository destRepository = new DestinationRepository();
+	private DestinationDAO destRepository = new DestinationDAO();
 	
 	public ArrayList<Destination> getAllDestinations(Integer withlistId) {
 		return destRepository.getAll(withlistId);

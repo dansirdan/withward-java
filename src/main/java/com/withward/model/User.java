@@ -7,8 +7,19 @@ public class User {
 	private String password;
 	private String photo;
 	
+	public User () {
+		super();
+	}
+	
 	public User(Integer id, String username, String email, String password, String photo) {
 		this.id = id;
+		this.username = username;
+		this.email = email;
+		this.password = password;
+		this.photo = photo;
+	}
+	
+	public User(String username, String email, String password, String photo) {
 		this.username = username;
 		this.email = email;
 		this.password = password;
@@ -50,4 +61,5 @@ public class User {
 	public void setPhoto(String photo) {
 		this.photo = photo;
 	}
+	
 }
