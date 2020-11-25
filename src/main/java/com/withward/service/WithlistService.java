@@ -19,12 +19,12 @@ public class WithlistService {
 		return wlRepo.isAdmin(user_id, withlist_id);
 	}
 	
-	public void createWithlist(Withlist withlist) {
-		wlRepo.insertWithlist(withlist);
+	public Withlist createWithlist(Withlist withlist) {
+		return wlRepo.insertWithlist(withlist);
 	}
 	
-	public void updateWithlist(Withlist withlist) {
-		wlRepo.updateWithlist(withlist);
+	public Withlist updateWithlist(Withlist withlist) {
+		return wlRepo.updateWithlist(withlist);
 	}
 	
 	public void deleteWithlist(Integer withlistId) {

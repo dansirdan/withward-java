@@ -1,8 +1,6 @@
 package com.withward.servlets;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import java.io.BufferedReader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,6 +13,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.withward.service.UserService;
 import com.withward.model.User;
 
@@ -22,6 +22,7 @@ import com.withward.model.User;
  * Servlet implementation class UserServlet
  */
 public class UserServlet extends HttpServlet {
+	private static Logger logger = Logger.getLogger(WithlistServlet.class);
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private UserService userService = new UserService();
@@ -56,7 +57,7 @@ public class UserServlet extends HttpServlet {
 //		response.getWriter().append("Served at: ").append(request.getContextPath());
 //		String action = request.getParameter("action");
 		String action = "";
-		if(request.getPathInfo() != null) {
+		if (request.getPathInfo() != null) {
 			action = request.getPathInfo();
 		}
 //		response.getWriter().append(request.getPathInfo());
@@ -64,25 +65,32 @@ public class UserServlet extends HttpServlet {
 		switch (action) {
 		case "/new":
 			insertUser(request, response);
+			logger.debug("POST request made to " + request.getRequestURI());
+
 			break;
 		case "/edit":
 			editUser(request, response);
+			logger.debug("PUT request made to " + request.getRequestURI());
+
 			break;
 		case "/delete":
 			deleteUser(request, response);
+			logger.debug("DELETE request made to " + request.getRequestURI());
+
 			break;
 		case "/all":
 			listAllUsers(request, response);
-			break;
-		case "/one":
-			listUser(request, response);
+			logger.debug("GET request made to " + request.getRequestURI());
+
 			break;
 		default:
-			response.getWriter().append("DEFAULT");
+			listUser(request, response);
+			logger.debug("GET request made to " + request.getRequestURI());
+
 			break;
 		}
 	}
-
+	
 	private void insertUser(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		BufferedReader reader = request.getReader();
@@ -113,7 +121,7 @@ public class UserServlet extends HttpServlet {
 	private void editUser(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 //		response.getWriter().append("EDIT USER");
-		
+
 		BufferedReader reader = request.getReader();
 		StringBuilder sb = new StringBuilder();
 		String line;
@@ -142,16 +150,19 @@ public class UserServlet extends HttpServlet {
 	private void deleteUser(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 //		response.getWriter().append("DELETE USER");
-		Integer user_id = Integer.parseInt(request.getParameter("user_id"));
+		Integer user_id = 0;
+		if (request.getParameter("id") != null) {			
+			user_id = Integer.parseInt(request.getParameter("id"));
+		}
 		userService.deleteUser(user_id);
 	}
 
 	private void listAllUsers(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+
 		try {
 			ArrayList<User> users = userService.getAllUsers();
-			
+
 			objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 			String json = objectMapper.writeValueAsString(users);
 
@@ -168,10 +179,13 @@ public class UserServlet extends HttpServlet {
 	private void listUser(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 //		response.getWriter().append("LIST ONE");
-		Integer user_id = Integer.parseInt(request.getParameter("user_id"));
+		Integer user_id = 0;
+		if (request.getParameter("id") != null) {			
+			user_id = Integer.parseInt(request.getParameter("id"));
+		}
 
 		try {
-			
+
 			User user = userService.getOneUser(user_id);
 			
 			objectMapper.enable(SerializationFeature.INDENT_OUTPUT);

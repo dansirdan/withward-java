@@ -26,6 +26,17 @@ public class User {
 		this.photo = photo;
 	}
 	
+	public User(String username, String password) {
+		this.username = username;
+		this.password = password;
+	}
+	
+	public User(Integer id, String username, String photo) {
+		this.id = id;
+		this.username = username;
+		this.photo = photo;
+	}
+	
 	public Integer getId() {
 		return this.id;
 	}

@@ -16,12 +16,12 @@ public class DestinationService {
 		return destRepository.getDestination(destinationId);
 	}
 	
-	public void createDestination(Destination destination) {
-		destRepository.insertDestination(destination);
+	public Destination createDestination(Destination destination) {
+		return destRepository.insertDestination(destination);
 	}
 	
-	public void updateDestination(Destination destination) {
-		destRepository.updateDestination(destination);
+	public Destination updateDestination(Destination destination) {
+		return destRepository.updateDestination(destination);
 	}
 	
 	public void deleteDestination(Integer destinationId) {

@@ -13,6 +13,8 @@ A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\model\Wit
 A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\service\DestinationService.java
 A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\servlets\DestinationServlet.java
 A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\model\Destination.java
+A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\servlets\LoginServlet.java
+A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\util\SHA.java
 A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\repository\WithlistDAO.java
 A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\model\User.java
 A:\DEV\Revature\Projects\crud-test\withward\src\main\java\com\withward\repository\DestinationDAO.java

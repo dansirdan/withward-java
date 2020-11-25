@@ -6,6 +6,8 @@ com\withward\repository\DestinationRatingDAO.class
 com\withward\servlets\WithlistServlet.class
 com\withward\model\WithlistUser.class
 com\withward\service\UserService.class
+com\withward\util\SHA.class
+com\withward\servlets\LoginServlet.class
 com\withward\model\User.class
 com\withward\model\Destination.class
 com\withward\servlets\UserServlet.class

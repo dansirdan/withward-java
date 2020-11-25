@@ -12,6 +12,10 @@ public class UserService {
 		return userRepository.getAll();
 	}
 	
+	public boolean isAuthenticated(String username, String password) {
+		return userRepository.authenticateUser(username, password);
+	}
+	
 	public User getOneUser(Integer userId) {
 		return userRepository.getUser(userId);
 	}

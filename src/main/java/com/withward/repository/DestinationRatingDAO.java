@@ -14,18 +14,18 @@ public class DestinationRatingDAO {
 	public ArrayList<DestinationRating> getAll(Integer destination_id) {
 
 		ArrayList<DestinationRating> destination_ratings = new ArrayList<DestinationRating>();
-		String sql = "SELECT * " + "FROM destination_rating"
-				+ "WHERE id = ?";
+		String sql = "SELECT * " + "FROM ratings"
+				+ "WHERE destination_id = ?";
 
 		try (Connection connection = JDBC.getConnection()) {
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setInt(1, destination_id);
-			ResultSet rs = stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
-				Integer id = rs.getInt("id");
+				Integer id = rs.getInt("rating_id");
 				Integer destinationId = rs.getInt("destination_id");
 				Integer userId = rs.getInt("user_id");
-				Float rating = rs.getFloat("rating");
+				Float rating = rs.getFloat("rating_value");
 				DestinationRating destination_user = new DestinationRating(id, destinationId, userId, rating);
 				destination_ratings.add(destination_user);
 			}
@@ -40,16 +40,16 @@ public class DestinationRatingDAO {
 	public DestinationRating getDestinationRating(Integer destinationRatingId) {
 
 		DestinationRating destination_user = null;
-		String sql = "SELECT * " + "FROM destination_rating " + "WHERE id = ?";
+		String sql = "SELECT * " + "FROM ratings " + "WHERE rating_id = ?";
 		try (Connection connection = JDBC.getConnection()) {
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setInt(1, destinationRatingId);
-			ResultSet rs = stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
-				Integer id = rs.getInt("id");
+				Integer id = rs.getInt("rating_id");
 				Integer destinationId = rs.getInt("destination_id");
 				Integer userId = rs.getInt("user_id");
-				Float rating = rs.getFloat("rating");
+				Float rating = rs.getFloat("rating_value");
 				destination_user = new DestinationRating(id, destinationId, userId, rating);
 			}
 		} catch (SQLException e) {
@@ -60,9 +60,9 @@ public class DestinationRatingDAO {
 		return destination_user;
 	}
 	
-	public void insertDestRating(DestinationRating destination_rating) {
-		String sql = "INSERT INTO destination_rating "
-				+ "(destination_id, user_id, rating) " + "VALUES "
+	public DestinationRating insertDestRating(DestinationRating destination_rating) {
+		String sql = "INSERT INTO ratings "
+				+ "(destination_id, user_id, rating_value) " + "VALUES "
 				+ "(?,?,?)";
 
 		try (Connection connection = JDBC.getConnection()) {
@@ -77,26 +77,27 @@ public class DestinationRatingDAO {
 				throw new SQLException("Inserting user failed, no rows were affected");
 			}
 
-//			int autoId = 0;
-//			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-//			if (generatedKeys.next()) {
-//				autoId = generatedKeys.getInt(1);
-//			} else {
-//				throw new SQLException("Inserting user failed, no ID generated.");
-//			}
+			int autoId = 0;
+			ResultSet generatedKeys = pstmt.getGeneratedKeys();
+			if (generatedKeys.next()) {
+				autoId = generatedKeys.getInt(1);
+			} else {
+				throw new SQLException("Inserting user failed, no ID generated.");
+			}
 
 			connection.commit();
-
+			DestinationRating newRating = this.getDestinationRating(autoId);
+			return newRating;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-//		String sql = "INSERT INTO user (username, email, password
+		return null;
 	}
 	
-	public void updateDestinationRating(DestinationRating destination_rating) {
-		String sql = "UPDATE destination_rating " 
-				+ "SET rating = ? "  
-				+ "WHERE id = ?";
+	public DestinationRating updateDestinationRating(DestinationRating destination_rating) {
+		String sql = "UPDATE ratings " 
+				+ "SET rating_value = ? "  
+				+ "WHERE rating_id = ?";
 		
 		try (Connection connection = JDBC.getConnection()) {
 			connection.setAutoCommit(false);
@@ -109,18 +110,20 @@ public class DestinationRatingDAO {
 				throw new SQLException("Inserting destination failed, no rows were affected");
 			}
 
-//			int autoId = 0;
-//			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-//			if (generatedKeys.next()) {
-//				autoId = generatedKeys.getInt(1);
-//			} else {
-//				throw new SQLException("Inserting destination failed, no ID generated.");
-//			}
+			int autoId = 0;
+			ResultSet generatedKeys = pstmt.getGeneratedKeys();
+			if (generatedKeys.next()) {
+				autoId = generatedKeys.getInt(1);
+			} else {
+				throw new SQLException("Inserting destination failed, no ID generated.");
+			}
 
 			connection.commit();
-
+			DestinationRating newRating = this.getDestinationRating(autoId);
+			return newRating;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 }

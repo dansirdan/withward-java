@@ -16,23 +16,22 @@ public class DestinationDAO {
 	public ArrayList<Destination> getAll(Integer withlist_id) {
 
 		ArrayList<Destination> destinations = new ArrayList<Destination>();
-		String sql = "SELECT * " + "FROM destination " + "WHERE withlist_id = ?";
+		String sql = "SELECT * " + "FROM destinations " + "WHERE withlist_id = ?";
 
 		try (Connection connection = JDBC.getConnection()) {
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setInt(1, withlist_id);
-			ResultSet rs = stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
-				Integer id = rs.getInt("id");
-				Integer withlistId = rs.getInt("withlistId");
-				String name = rs.getString("name");
-				String description = rs.getString("description");
-				String photo = rs.getString("photo");
-				boolean completed = rs.getBoolean("completed");
-				Float averageRating = rs.getFloat("averageRating");
-				Integer userId = rs.getInt("userId");
+				Integer id = rs.getInt("dest_id");
+				Integer withlistId = rs.getInt("withlist_id");
+				String name = rs.getString("dest_name");
+				String description = rs.getString("dest_description");
+				String photo = rs.getString("dest_photo");
+				boolean completed = rs.getBoolean("dest_completed");
+				Float averageRating = rs.getFloat("dest_averageRating");
 				Destination destination = new Destination(id, withlistId, name, description, photo, completed,
-						averageRating, userId);
+						averageRating);
 				destinations.add(destination);
 			}
 		} catch (SQLException e) {
@@ -46,22 +45,20 @@ public class DestinationDAO {
 	public Destination getDestination(Integer destinationId) {
 
 		Destination destination = null;
-		String sql = "SELECT * " + "FROM destination " + "WHERE id = ?";
+		String sql = "SELECT * " + "FROM destinations " + "WHERE dest_id = ?";
 		try (Connection connection = JDBC.getConnection()) {
 			PreparedStatement stmt = connection.prepareStatement(sql);
 			stmt.setInt(1, destinationId);
-			ResultSet rs = stmt.executeQuery(sql);
+			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
-				Integer id = rs.getInt("id");
-				Integer withlistId = rs.getInt("withlistId");
-				String name = rs.getString("name");
-				String description = rs.getString("description");
-				String photo = rs.getString("photo");
-				boolean completed = rs.getBoolean("completed");
-				Float averageRating = rs.getFloat("averageRating");
-				Integer userId = rs.getInt("userId");
-				destination = new Destination(id, withlistId, name, description, photo, completed, averageRating,
-						userId);
+				Integer id = rs.getInt("dest_id");
+				Integer withlistId = rs.getInt("withlist_id");
+				String name = rs.getString("dest_name");
+				String description = rs.getString("dest_description");
+				String photo = rs.getString("dest_photo");
+				boolean completed = rs.getBoolean("dest_completed");
+				Float averageRating = rs.getFloat("dest_averageRating");
+				destination = new Destination(id, withlistId, name, description, photo, completed, averageRating);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -71,10 +68,10 @@ public class DestinationDAO {
 		return destination;
 	}
 
-	public void insertDestination(Destination destination) {
-		String sql = "INSERT INTO destination "
-				+ "(withlist_id, name, description, photo, completed, averageRating, user_id) " + "VALUES "
-				+ "(?,?,?,?,?,?,?)";
+	public Destination insertDestination(Destination destination) {
+		String sql = "INSERT INTO destinations "
+				+ "(withlist_id, dest_name, dest_description, dest_photo, dest_completed, dest_averageRating) " + "VALUES "
+				+ "(?,?,?,?,?,?)";
 
 		try (Connection connection = JDBC.getConnection()) {
 			connection.setAutoCommit(false);
@@ -86,36 +83,37 @@ public class DestinationDAO {
 			pstmt.setString(4, destination.getPhoto());
 			pstmt.setBoolean(5, false);
 			pstmt.setFloat(6, destination.getAverageRating());
-			pstmt.setInt(7, destination.getUser_id());
 
 			if (pstmt.executeUpdate() != 1) {
 				throw new SQLException("Inserting destination failed, no rows were affected");
 			}
 			
 			
-//			int autoId = 0;
-//			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-//			if (generatedKeys.next()) {
-//				autoId = generatedKeys.getInt(1);
-//			} else {
-//				throw new SQLException("Inserting destination failed, no ID generated.");
-//			}
+			int autoId = 0;
+			ResultSet generatedKeys = pstmt.getGeneratedKeys();
+			if (generatedKeys.next()) {
+				autoId = generatedKeys.getInt(1);
+			} else {
+				throw new SQLException("Inserting destination failed, no ID generated.");
+			}
 
 			connection.commit();
-			
+			Destination newDest = this.getDestination(autoId);
+			return newDest;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 
-	public void updateDestination(Destination destination) {
-		String sql = "UPDATE destination " 
-				+ "SET name = ?, " 
-				+ "description = ?, "
-				+ "photo = ?, " 
-				+ "completed = ?, " 
-				+ "averageRating = ? " 
-				+ "WHERE id = ?";
+	public Destination updateDestination(Destination destination) {
+		String sql = "UPDATE destinations " 
+				+ "SET dest_name = ?, " 
+				+ "dest_description = ?, "
+				+ "dest_photo = ?, " 
+				+ "dest_completed = ?, " 
+				+ "dest_averageRating = ? " 
+				+ "WHERE dest_id = ?";
 		
 		try (Connection connection = JDBC.getConnection()) {
 			connection.setAutoCommit(false);
@@ -132,30 +130,34 @@ public class DestinationDAO {
 				throw new SQLException("Inserting destination failed, no rows were affected");
 			}
 
-//			int autoId = 0;
-//			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-//			if (generatedKeys.next()) {
-//				autoId = generatedKeys.getInt(1);
-//			} else {
-//				throw new SQLException("Inserting destination failed, no ID generated.");
-//			}
+			Integer autoId = 0;
+			ResultSet generatedKeys = pstmt.getGeneratedKeys();
+			if (generatedKeys.next()) {
+				autoId = generatedKeys.getInt(1);
+			} else {
+				throw new SQLException("Inserting destination failed, no ID generated.");
+			}
 
 			connection.commit();
-
+			Destination newDest = this.getDestination(autoId);
+			return newDest;		
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 	public void deleteOne(Integer destination_id) {
 		
-		String sql = "DELETE FROM destination WHERE ID = ?";
+		String sql = "DELETE FROM destinations WHERE dest_id = ?";
 		
 		try (Connection connection = JDBC.getConnection()) {
 			
 			connection.setAutoCommit(false);
 			PreparedStatement pstmt = connection.prepareStatement(sql);
 			pstmt.setInt(1, destination_id);
+			pstmt.execute();
+
 			connection.commit();
 
 		} catch (SQLException e) {
