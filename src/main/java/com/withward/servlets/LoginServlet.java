@@ -39,6 +39,10 @@ public class LoginServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		String action = "User";
+		if (request.getPathInfo() != null) {
+			action = request.getPathInfo();
+		}
 		
 		BufferedReader reader = request.getReader();
 		StringBuilder sb = new StringBuilder();
@@ -81,7 +85,7 @@ public class LoginServlet extends HttpServlet {
 				
 				
 				
-				response.getWriter().append("YOU LOGGED IN");
+				response.getWriter().append("YOU LOGGED IN as a " + action);
 				response.setStatus(200);
 			} else {
 				response.getWriter().append("INCORRECT LOGIN");
