@@ -10,7 +10,13 @@ public class JDBC {
 	public static Connection getConnection() throws SQLException {
 		Connection c = null;
 		DriverManager.registerDriver(new Driver());
-		c = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "dan_admin", "ceru1014");
+		
+		String connUrl = System.getenv("DB_URL");
+		String connUser = System.getenv("DB_USERNAME");
+		String connPass = System.getenv("DB_PASSWORD");
+
+		
+		c = DriverManager.getConnection(connUrl, connUser, connPass);
 		return c;
 	}
 }
