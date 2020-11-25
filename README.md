@@ -151,4 +151,4 @@ Apache License
 
 ## Copyright (c) 2020 Daniel Mont-Eton
 
-🏆 The sections listed above are the minimum for a good README, but your project will ultimately determine the content of this document. You might also want to consider adding the following sections.
+🏆
