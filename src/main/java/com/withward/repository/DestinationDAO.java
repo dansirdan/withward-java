@@ -13,155 +13,167 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DestinationDAO {
-	public ArrayList<Destination> getAll(Integer withlist_id) {
+	
+	/**
+	 * Method to interact with the database to get all destination records
+	 * that belong to a specific withlist and return them as an ArrayList.
+	 * @param withlist_id id value of withlist
+	 * @return ArrayList<Destination> of all destination records. 
+	 * @throws SQLException
+	 */
+	public ArrayList<Destination> getAll(Integer withlist_id) throws SQLException {
 
 		ArrayList<Destination> destinations = new ArrayList<Destination>();
 		String sql = "SELECT * " + "FROM destinations " + "WHERE withlist_id = ?";
 
-		try (Connection connection = JDBC.getConnection()) {
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			stmt.setInt(1, withlist_id);
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				Integer id = rs.getInt("dest_id");
-				Integer withlistId = rs.getInt("withlist_id");
-				String name = rs.getString("dest_name");
-				String description = rs.getString("dest_description");
-				String photo = rs.getString("dest_photo");
-				boolean completed = rs.getBoolean("dest_completed");
-				Float averageRating = rs.getFloat("dest_averageRating");
-				Destination destination = new Destination(id, withlistId, name, description, photo, completed,
-						averageRating);
-				destinations.add(destination);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			System.exit(0);
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setInt(1, withlist_id);
+		ResultSet rs = pstmt.executeQuery();
+		
+		while (rs.next()) {
+			Integer id = rs.getInt("dest_id");
+			Integer withlistId = rs.getInt("withlist_id");
+			String name = rs.getString("dest_name");
+			String description = rs.getString("dest_description");
+			String photo = rs.getString("dest_photo");
+			boolean completed = rs.getBoolean("dest_completed");
+			Float averageRating = rs.getFloat("dest_averageRating");
+			Destination destination = new Destination(id, withlistId, name, description, photo, completed,
+					averageRating);
+			destinations.add(destination);
 		}
+		
+		pstmt.close();
+		connection.close();
 		return destinations;
 	}
 
-	public Destination getDestination(Integer destinationId) {
+	/**
+	 * Method to interact with the database to get one destination record.
+	 * @param destinationId id value of destination
+	 * @return Destination object of found destination record. 
+	 * @throws SQLException
+	 */
+	public Destination getDestination(Integer destinationId) throws SQLException {
 
 		Destination destination = null;
 		String sql = "SELECT * " + "FROM destinations " + "WHERE dest_id = ?";
-		try (Connection connection = JDBC.getConnection()) {
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			stmt.setInt(1, destinationId);
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				Integer id = rs.getInt("dest_id");
-				Integer withlistId = rs.getInt("withlist_id");
-				String name = rs.getString("dest_name");
-				String description = rs.getString("dest_description");
-				String photo = rs.getString("dest_photo");
-				boolean completed = rs.getBoolean("dest_completed");
-				Float averageRating = rs.getFloat("dest_averageRating");
-				destination = new Destination(id, withlistId, name, description, photo, completed, averageRating);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			System.exit(0);
+
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setInt(1, destinationId);
+		ResultSet rs = pstmt.executeQuery();
+
+		while (rs.next()) {
+			Integer id = rs.getInt("dest_id");
+			Integer withlistId = rs.getInt("withlist_id");
+			String name = rs.getString("dest_name");
+			String description = rs.getString("dest_description");
+			String photo = rs.getString("dest_photo");
+			boolean completed = rs.getBoolean("dest_completed");
+			Float averageRating = rs.getFloat("dest_averageRating");
+			destination = new Destination(id, withlistId, name, description, photo, completed, averageRating);
 		}
+		pstmt.close();
+		connection.close();
+
 		return destination;
 	}
 
-	public Destination insertDestination(Destination destination) {
+	/**
+	 * Method to interact with the database to insert one destination record.
+	 * @param Destination object
+	 * @return Destination object of inserted destination record. 
+	 * @throws SQLException
+	 */
+	public Destination insertDestination(Destination destination) throws SQLException {
 		String sql = "INSERT INTO destinations "
-				+ "(withlist_id, dest_name, dest_description, dest_photo, dest_completed, dest_averageRating) " + "VALUES "
-				+ "(?,?,?,?,?,?)";
+				+ "(withlist_id, dest_name, dest_description, dest_photo, dest_completed, dest_averageRating) "
+				+ "VALUES " + "(?,?,?,?,?,?)";
 
-		try (Connection connection = JDBC.getConnection()) {
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-			pstmt.setInt(1, destination.getWithlist_id());
-			pstmt.setString(2, destination.getName());
-			pstmt.setString(3, destination.getDescription());
-			pstmt.setString(4, destination.getPhoto());
-			pstmt.setBoolean(5, false);
-			pstmt.setFloat(6, destination.getAverageRating());
+		pstmt.setInt(1, destination.getWithlist_id());
+		pstmt.setString(2, destination.getName());
+		pstmt.setString(3, destination.getDescription());
+		pstmt.setString(4, destination.getPhoto());
+		pstmt.setBoolean(5, false);
+		pstmt.setFloat(6, destination.getAverageRating());
 
-			if (pstmt.executeUpdate() != 1) {
-				throw new SQLException("Inserting destination failed, no rows were affected");
-			}
-			
-			
-			int autoId = 0;
-			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				autoId = generatedKeys.getInt(1);
-			} else {
-				throw new SQLException("Inserting destination failed, no ID generated.");
-			}
-
-			connection.commit();
-			Destination newDest = this.getDestination(autoId);
-			return newDest;
-		} catch (SQLException e) {
-			e.printStackTrace();
+		if (pstmt.executeUpdate() != 1) {
+			throw new SQLException("No Rows Affected");
 		}
-		return null;
+
+		int autoId = 0;
+		ResultSet generatedKeys = pstmt.getGeneratedKeys();
+		if (generatedKeys.next()) {
+			autoId = generatedKeys.getInt(1);
+		} else {
+			throw new SQLException("ID generation failed");
+		}
+		pstmt.close();
+		connection.close();
+		return new Destination(autoId, destination.getWithlist_id(), destination.getName(),
+				destination.getDescription(), destination.getPhoto(), destination.isCompleted(),
+				destination.getAverageRating());
+
 	}
 
-	public Destination updateDestination(Destination destination) {
-		String sql = "UPDATE destinations " 
-				+ "SET dest_name = ?, " 
-				+ "dest_description = ?, "
-				+ "dest_photo = ?, " 
-				+ "dest_completed = ?, " 
-				+ "dest_averageRating = ? " 
-				+ "WHERE dest_id = ?";
-		
-		try (Connection connection = JDBC.getConnection()) {
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	/**
+	 * Method to interact with the database to update one destination record.
+	 * @param Destination object
+	 * @param id destination id that will be updated
+	 * @return Destination object of updated destination record. 
+	 * @throws SQLException
+	 */
+	public Destination updateDestination(Destination destination, Integer id) throws SQLException {
+		String sql = "UPDATE destinations " + "SET dest_name = ?, " + "dest_description = ?, " + "dest_photo = ?, "
+				+ "dest_completed = ?, " + "dest_averageRating = ? " + "WHERE dest_id = ?";
 
-			pstmt.setString(1, destination.getName());
-			pstmt.setString(2, destination.getDescription());
-			pstmt.setString(3, destination.getPhoto());
-			pstmt.setBoolean(4, destination.isCompleted());
-			pstmt.setFloat(5, destination.getAverageRating());
-			pstmt.setInt(6, destination.getId());
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
 
-			if (pstmt.executeUpdate() != 1) {
-				throw new SQLException("Inserting destination failed, no rows were affected");
-			}
+		pstmt.setString(1, destination.getName());
+		pstmt.setString(2, destination.getDescription());
+		pstmt.setString(3, destination.getPhoto());
+		pstmt.setBoolean(4, destination.isCompleted());
+		pstmt.setFloat(5, destination.getAverageRating());
+		pstmt.setInt(6, id);
 
-			Integer autoId = 0;
-			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				autoId = generatedKeys.getInt(1);
-			} else {
-				throw new SQLException("Inserting destination failed, no ID generated.");
-			}
-
-			connection.commit();
-			Destination newDest = this.getDestination(autoId);
-			return newDest;		
-		} catch (SQLException e) {
-			e.printStackTrace();
+		if (pstmt.executeUpdate() != 1) {
+			throw new SQLException("No Rows Affected");
 		}
-		return null;
+
+		pstmt.close();
+		connection.close();
+
+		return new Destination(id, destination.getWithlist_id(), destination.getName(), destination.getDescription(),
+				destination.getPhoto(), destination.isCompleted(), destination.getAverageRating());
 	}
-	
-	public void deleteOne(Integer destination_id) {
-		
+
+	/**
+	 * Method to interact with the database to delete one destination record.
+	 * @param id destination id that will be deleted
+	 * @return boolean if record was deleted 
+	 * @throws SQLException
+	 */
+	public boolean deleteOne(Integer destination_id) throws SQLException {
+
 		String sql = "DELETE FROM destinations WHERE dest_id = ?";
-		
-		try (Connection connection = JDBC.getConnection()) {
-			
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql);
-			pstmt.setInt(1, destination_id);
-			pstmt.execute();
 
-			connection.commit();
-
-		} catch (SQLException e) {
-			e.printStackTrace();
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setInt(1, destination_id);
+		if (pstmt.executeUpdate() == 1) {
+			pstmt.close();
+			connection.close();
+			return true;
+		} else {
+			pstmt.close();
+			connection.close();
+			throw new SQLException("No Rows Affected");
 		}
 	}
 }

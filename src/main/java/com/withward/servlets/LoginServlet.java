@@ -1,10 +1,13 @@
 package com.withward.servlets;
+
 import java.io.BufferedReader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.sql.SQLException;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -15,35 +18,38 @@ import org.apache.log4j.Logger;
 
 import com.withward.service.UserService;
 import com.withward.model.User;
+
 /**
  * Servlet implementation class LoginServlet
  */
 public class LoginServlet extends HttpServlet {
 	private static Logger logger = Logger.getLogger(WithlistServlet.class);
-	
+
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private UserService userService = new UserService();
 
 	private static final long serialVersionUID = 1L;
 
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public LoginServlet() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
+	/**
+	 * @see HttpServlet#HttpServlet()
+	 */
+	public LoginServlet() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 
 	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		String action = "User";
 		if (request.getPathInfo() != null) {
 			action = request.getPathInfo();
 		}
-		
+
 		BufferedReader reader = request.getReader();
 		StringBuilder sb = new StringBuilder();
 		String line;
@@ -57,51 +63,55 @@ public class LoginServlet extends HttpServlet {
 
 		try {
 			User loginData = objectMapper.readValue(jsonString, User.class);
-			
 			String username;
 			String password;
 			boolean isAuthenticated = false;
 			if (loginData.getUsername() != null & loginData.getPassword() != null) {
 				username = loginData.getUsername();
-				password = loginData.getPassword();				
+				password = loginData.getPassword();
 				isAuthenticated = userService.isAuthenticated(username, password);
 				session.setAttribute("username", username);
 				session.setAttribute("password", password);
+				
+				User userData = userService.getByUsername(username);
+				session.setAttribute("userId", userData.getId());
 			} else {
 				try {
 					username = (String) session.getAttribute("username");
 					password = (String) session.getAttribute("password");
 					isAuthenticated = userService.isAuthenticated(username, password);
 					logger.debug("LOGIN SESSION ATTEMPT made at " + request.getRequestURI());
-
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-			
+
 			logger.debug("LOGIN ATTEMPT made at " + request.getRequestURI());
 
 			if (isAuthenticated) {
-				
-				
-				
+
 				response.getWriter().append("YOU LOGGED IN as a " + action);
 				response.setStatus(200);
 			} else {
 				response.getWriter().append("INCORRECT LOGIN");
 				response.setStatus(401);
 			}
-			
+
 		} catch (JsonProcessingException e) {
 			response.setStatus(400);
 			e.printStackTrace();
-		}		
+		} catch (SQLException e) {
+			response.setStatus(400);
+			e.printStackTrace();
+		}
 	}
 
 	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		doGet(request, response);
 	}

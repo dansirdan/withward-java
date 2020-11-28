@@ -13,197 +13,204 @@ import com.withward.util.SHA;
 
 public class UserDAO {
 	private SHA sha = new SHA();
-	public ArrayList<User> getAll() {
+
+	/**
+	 * Method to interact with the database to get all user records.
+	 * @return ArrayList<User> of all user records. 
+	 * @throws SQLException
+	 */
+	public ArrayList<User> getAll() throws SQLException {
 
 		ArrayList<User> users = new ArrayList<User>();
 		String sql = "SELECT * " + "FROM users";
 
-		try (Connection connection = JDBC.getConnection()) {
-			Statement stmt = connection.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				Integer id = rs.getInt("user_id");
-				String username = rs.getString("username");
-				String photo = rs.getString("user_photo");
-				User user = new User(id, username, photo);
-				users.add(user);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			System.exit(0);
+		Connection connection = JDBC.getConnection();
+		Statement stmt = connection.createStatement();
+		ResultSet rs = stmt.executeQuery(sql);
+		while (rs.next()) {
+			Integer id = rs.getInt("user_id");
+			String username = rs.getString("username");
+			String photo = rs.getString("user_photo");
+			User user = new User(id, username, photo);
+			users.add(user);
 		}
+
+		stmt.close();
+		connection.close();
 		return users;
 	}
-	
-	public boolean authenticateUser(String username, String password) {
+
+	/**
+	 * Method to authenticate user based on username and password.
+	 * @param username String, username in database
+	 * @param password String, password in database
+	 * @return boolean if authenticated. 
+	 * @throws SQLException
+	 */
+	public boolean authenticateUser(String username, String password) throws SQLException {
 		String hashedPassword;
 		byte[] salt;
 		String sql = "SELECT user_salt, user_password from users where username = ?";
-		
-		try(Connection connection = JDBC.getConnection()){
-			PreparedStatement pstmt = connection.prepareStatement(sql);
-			pstmt.setString(1, username);
-			ResultSet resultSet = pstmt.executeQuery();
-			resultSet.next();
-			salt = resultSet.getBytes("user_salt");
-			hashedPassword = resultSet.getString("user_password");
-			
-			if(hashedPassword.equals(sha.hashingMethod(password, salt))) {
-				return true;
-			} else {
-				return false;
-			}
-			
-			
-		} catch ( SQLException ex) {
+
+		Connection connection = JDBC.getConnection();
+
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setString(1, username);
+		ResultSet resultSet = pstmt.executeQuery();
+		resultSet.next();
+		salt = resultSet.getBytes("user_salt");
+		hashedPassword = resultSet.getString("user_password");
+		pstmt.close();
+		connection.close();
+		if (hashedPassword.equals(sha.hashingMethod(password, salt))) {
+			return true;
+		} else {
 			return false;
 		}
 	}
-	
-//	public ArrayList<User> getAllWithQuery(String column, String value) {
-//
-//		ArrayList<User> users = new ArrayList<User>();
-//		String sql = "SELECT * " + "FROM user"
-//				+ " WHERE ? = ?";
-//
-//		try (Connection connection = JDBC.getConnection()) {
-//			PreparedStatement pstmt = connection.prepareStatement(sql);
-//			pstmt.setString(1, column);
-//			pstmt.setString()
-//			ResultSet rs = stmt.executeQuery(sql);
-//			while (rs.next()) {
-//				Integer id = rs.getInt("id");
-//				String username = rs.getString("username");
-//				String email = rs.getString("email");
-//				String password = rs.getString("password");
-//				String homeLocation = rs.getString("homeLocation");
-//				User user = new User(id, username, email, password, homeLocation);
-//				users.add(user);
-//			}
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-//			System.exit(0);
-//		}
-//		return users;
-//	}
-	
 
-	public User getUser(Integer userId) {
+	/**
+	 * Method to interact with the database to get one user record.
+	 * @param userId id value of user
+	 * @return User object of found user record. 
+	 * @throws SQLException
+	 */
+	public User getUser(Integer userId) throws SQLException {
 
 		User user = null;
 		String sql = "SELECT * " + "FROM users " + "WHERE users.user_id = ?";
-		try (Connection connection = JDBC.getConnection()) {
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			stmt.setInt(1, userId);
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				Integer id = rs.getInt("user_id");
-				String username = rs.getString("username");
-				String photo = rs.getString("user_photo");
-				user = new User(id, username, photo);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			System.exit(0);
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setInt(1, userId);
+		ResultSet rs = pstmt.executeQuery();
+		while (rs.next()) {
+			Integer id = rs.getInt("user_id");
+			String username = rs.getString("username");
+			String photo = rs.getString("user_photo");
+			user = new User(id, username, photo);
 		}
+		pstmt.close();
+		connection.close();
 		return user;
 	}
 	
-	public User insertUser(User user) {
-		String sql = "INSERT INTO users "
-				+ "(username, user_email, user_salt, user_password, user_photo) " + "VALUES "
+	/**
+	 * Method to interact with the database to get one user record.
+	 * @param userId id value of user
+	 * @return User object of found user record. 
+	 * @throws SQLException
+	 */
+	public User getUserByUsername(String queryUsername) throws SQLException {
+
+		User user = null;
+		String sql = "SELECT * " + "FROM users " + "WHERE users.username = ?";
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setString(1, queryUsername);
+		ResultSet rs = pstmt.executeQuery();
+		while (rs.next()) {
+			Integer id = rs.getInt("user_id");
+			String username = rs.getString("username");
+			String photo = rs.getString("user_photo");
+			user = new User(id, username, photo);
+		}
+		pstmt.close();
+		connection.close();
+		return user;
+	}
+
+	/**
+	 * Method to interact with the database to insert one user record.
+	 * @param User object
+	 * @return User object of inserted user record. 
+	 * @throws SQLException
+	 */
+	public User insertUser(User user) throws SQLException {
+		String sql = "INSERT INTO users " + "(username, user_email, user_salt, user_password, user_photo) " + "VALUES "
 				+ "(?,?,?,?,?)";
 
 		byte[] salt = sha.getSalt();
 		String hashedPassword = sha.hashingMethod(user.getPassword(), salt);
-		
-		try (Connection connection = JDBC.getConnection()) {
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-			pstmt.setString(1, user.getUsername());
-			pstmt.setString(2, user.getEmail());
-			pstmt.setBytes(3, salt);
-			pstmt.setString(4, hashedPassword);
-			pstmt.setString(5, user.getPhoto());
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-			if (pstmt.executeUpdate() != 1) {
-				throw new SQLException("Inserting user failed, no rows were affected");
-			}
+		pstmt.setString(1, user.getUsername());
+		pstmt.setString(2, user.getEmail());
+		pstmt.setBytes(3, salt);
+		pstmt.setString(4, hashedPassword);
+		pstmt.setString(5, user.getPhoto());
 
-			int autoId = 0;
-			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				autoId = generatedKeys.getInt(1);
-			} else {
-				throw new SQLException("Inserting user failed, no ID generated.");
-			}
-
-			connection.commit();
-			return new User(autoId, user.getUsername(),user.getEmail(),user.getPassword(),user.getPhoto());
-		} catch (SQLException e) {
-			e.printStackTrace();
+		if (pstmt.executeUpdate() != 1) {
+			throw new SQLException("No Rows Affected");
 		}
-		return null;
-	}
-	
-	public User updateUser(User user) {
-		String sql = "UPDATE users " 
-				+ "SET username = ?, " 
-				+ "user_email = ?, "
-				+ "user_password = ?, " 
-				+ "user_photo = ? " 
-				+ "WHERE user_id = ?";
-		
-		try (Connection connection = JDBC.getConnection()) {
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-			pstmt.setString(1, user.getUsername());
-			pstmt.setString(2, user.getEmail());
-			pstmt.setString(3, user.getPassword());
-			pstmt.setString(4, user.getPhoto());
-			pstmt.setInt(5,  user.getId());
-
-			if (pstmt.executeUpdate() != 1) {
-				throw new SQLException("Inserting destination failed, no rows were affected");
-			}
-
-			int autoId = 0;
-			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				autoId = generatedKeys.getInt(1);
-			} else {
-				throw new SQLException("Inserting destination failed, no ID generated.");
-			}
-			connection.commit();
-			
-			return new User(autoId, user.getUsername(),user.getEmail(),user.getPassword(),user.getPhoto());
-		} catch (SQLException e) {
-			e.printStackTrace();
+		int autoId = 0;
+		ResultSet generatedKeys = pstmt.getGeneratedKeys();
+		if (generatedKeys.next()) {
+			autoId = generatedKeys.getInt(1);
+		} else {
+			throw new SQLException("ID generation failed");
 		}
-		return null;
+
+		pstmt.close();
+		connection.close();
+		return new User(autoId, user.getUsername(), user.getEmail(), user.getPassword(), user.getPhoto());
 
 	}
-	
-	public void deleteOne(Integer user_id) {
-		
+
+	/**
+	 * Method to interact with the database to update one user record.
+	 * @param User object
+	 * @param id user id that will be updated
+	 * @return User object of updated destination record. 
+	 * @throws SQLException
+	 */
+	public User updateUser(User user, Integer id) throws SQLException {
+		String sql = "UPDATE users " + "SET username = ?, " + "user_email = ?, " + "user_password = ?, "
+				+ "user_photo = ? " + "WHERE user_id = ?";
+
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+
+		pstmt.setString(1, user.getUsername());
+		pstmt.setString(2, user.getEmail());
+		pstmt.setString(3, user.getPassword());
+		pstmt.setString(4, user.getPhoto());
+		pstmt.setInt(5, id);
+
+		if (pstmt.executeUpdate() != 1) {
+			throw new SQLException("No Rows Affected");
+		}
+
+		pstmt.close();
+		connection.close();
+
+		return new User(id, user.getUsername(), user.getEmail(), user.getPassword(), user.getPhoto());
+	}
+
+	/**
+	 * Method to interact with the database to delete one user record.
+	 * @param id user id that will be deleted
+	 * @return boolean if record was deleted 
+	 * @throws SQLException
+	 */
+	public boolean deleteOne(Integer user_id) throws SQLException {
+
 		String sql = "DELETE FROM users WHERE user_id = ?";
-		
-		try (Connection connection = JDBC.getConnection()) {
-			
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql);
-			pstmt.setInt(1, user_id);
-			
-			pstmt.execute();
-			connection.commit();
 
-		} catch (SQLException e) {
-			e.printStackTrace();
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setInt(1, user_id);
+
+		if (pstmt.executeUpdate() == 1) {
+			pstmt.close();
+			connection.close();
+			return true;
+		} else {
+			pstmt.close();
+			connection.close();
+			throw new SQLException("No Rows Affected");
 		}
 	}
 }
