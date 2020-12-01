@@ -48,13 +48,6 @@ public class WithlistServlet extends HttpServlet {
 
 		HttpSession session = req.getSession(false);
 
-//		HttpSession session = req.getSession(false);
-//
-//		if (session != null) {
-//		} else {
-//			logger.info("GET request made without login");
-//			res.setStatus(401);
-//		}
 		if (session != null) {
 			if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
 				try {
