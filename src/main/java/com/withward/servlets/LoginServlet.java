@@ -35,22 +35,33 @@ public class LoginServlet extends HttpServlet {
 	 */
 	public LoginServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response) Logout method to logout user
+	 */
+	protected void doGet(HttpServletRequest req, HttpServletResponse res)
+			throws ServletException, IOException {
+
+		HttpSession session = req.getSession(false);
+		if (session != null) {
+			logger.info((String) session.getAttribute("username") + " logged out.");
+			session.invalidate();
+		} else {
+			logger.info("Log out attempt while not logged in.");
+			res.setStatus(401);
+		}
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+	protected void doPost(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		String action = "User";
-		if (request.getPathInfo() != null) {
-			action = request.getPathInfo();
-		}
 
-		BufferedReader reader = request.getReader();
+		BufferedReader reader = req.getReader();
 		StringBuilder sb = new StringBuilder();
 		String line;
 
@@ -59,61 +70,42 @@ public class LoginServlet extends HttpServlet {
 		}
 
 		String jsonString = sb.toString();
-		HttpSession session = request.getSession();
+		HttpSession session = req.getSession();
 
 		try {
 			User loginData = objectMapper.readValue(jsonString, User.class);
-			String username;
-			String password;
-			boolean isAuthenticated = false;
-			if (loginData.getUsername() != null & loginData.getPassword() != null) {
+			String username = loginData.getUsername();
+			String password = loginData.getPassword();
+			if (username != null && password != null) {
 				username = loginData.getUsername();
 				password = loginData.getPassword();
-				isAuthenticated = userService.isAuthenticated(username, password);
+			} else {
+				username = (String) session.getAttribute("username");
+				password = (String) session.getAttribute("password");
+			}
+
+			if (userService.isAuthenticated(username, password)) {
 				session.setAttribute("username", username);
 				session.setAttribute("password", password);
-				
+
 				User userData = userService.getByUsername(username);
 				session.setAttribute("userId", userData.getId());
+				res.getWriter().append("YOU LOGGED IN");
+				res.setStatus(200);
 			} else {
-				try {
-					username = (String) session.getAttribute("username");
-					password = (String) session.getAttribute("password");
-					isAuthenticated = userService.isAuthenticated(username, password);
-					logger.debug("LOGIN SESSION ATTEMPT made at " + request.getRequestURI());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				res.getWriter().append("INCORRECT LOGIN");
+				res.setStatus(401);
 			}
-
-			logger.debug("LOGIN ATTEMPT made at " + request.getRequestURI());
-
-			if (isAuthenticated) {
-
-				response.getWriter().append("YOU LOGGED IN as a " + action);
-				response.setStatus(200);
-			} else {
-				response.getWriter().append("INCORRECT LOGIN");
-				response.setStatus(401);
-			}
+			logger.debug("LOGIN ATTEMPT made at " + req.getRequestURI());
 
 		} catch (JsonProcessingException e) {
-			response.setStatus(400);
+			res.setStatus(400);
 			e.printStackTrace();
 		} catch (SQLException e) {
-			response.setStatus(400);
+			res.setStatus(400);
 			e.printStackTrace();
 		}
-	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
 	}
 
 }

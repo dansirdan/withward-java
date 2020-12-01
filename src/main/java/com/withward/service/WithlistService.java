@@ -9,8 +9,17 @@ import com.withward.repository.DestinationDAO;
 import com.withward.repository.WithlistDAO;
 
 public class WithlistService {
-	private WithlistDAO wlRepo = new WithlistDAO();
-	private DestinationDAO destRepository = new DestinationDAO();
+	WithlistDAO wlRepo = new WithlistDAO();
+	DestinationDAO destRepository = new DestinationDAO();
+	
+	public WithlistService() {
+		super();
+	}
+	
+	public WithlistService(WithlistDAO wlRepo, DestinationDAO dRepo) {
+		this.wlRepo = wlRepo;
+		this.destRepository = dRepo;
+	}
 	
 	public ArrayList<Withlist> getAllWithlists(Integer userId) throws SQLException {
 		return wlRepo.getAll(userId);
