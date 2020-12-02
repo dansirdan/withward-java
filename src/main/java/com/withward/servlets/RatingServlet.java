@@ -3,7 +3,6 @@ package com.withward.servlets;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -16,8 +15,12 @@ import org.apache.log4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.withward.DTO.DestinationDTO;
 import com.withward.model.DestinationRating;
+import com.withward.service.DestinationService;
 import com.withward.service.RatingService;
+import com.withward.service.UserService;
+import com.withward.service.WithlistService;
 
 /**
  * Servlet implementation class RatingServlet
@@ -26,6 +29,10 @@ public class RatingServlet extends HttpServlet {
 	private static Logger logger = Logger.getLogger(DestinationServlet.class);
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private RatingService ratingService = new RatingService();
+	private DestinationService destinationService = new DestinationService();
+	private WithlistService withlistService = new WithlistService();
+	private UserService userService = new UserService();
+
 
 	private static final long serialVersionUID = 1L;
 
@@ -43,19 +50,28 @@ public class RatingServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		logger.info("GET request made to " + req.getRequestURI());
 		HttpSession session = req.getSession(false);
-
+		
 		if (session != null) {
+			
 			if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
 				try {
 					Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
 					DestinationRating rating = ratingService.getOneDestinationRating(id);
-					
-					objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-					String json = objectMapper.writeValueAsString(rating);
-					
-					res.getWriter().append(json);
-					res.setContentType("application/json");
-					res.setStatus(200);
+					if (rating != null) {						
+						Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+						if (session.getAttribute("access").equals("admin") || sessionId == rating.getUser_id()) {
+							objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+							String json = objectMapper.writeValueAsString(rating);
+							
+							res.getWriter().append(json);
+							res.setContentType("application/json");
+							res.setStatus(200);
+						} else {
+							res.setStatus(401);
+						}
+					} else {
+						res.setStatus(400);
+					}
 				} catch (NumberFormatException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -69,36 +85,38 @@ public class RatingServlet extends HttpServlet {
 					res.setStatus(400);
 					e.printStackTrace();
 				}
-			} else if (req.getPathInfo() != null && req.getPathInfo().split("/").length > 2) {
-				res.setStatus(400);
 			} else {
-				try {
-					if (req.getParameter("destination-id") != null) {
-						Integer destinationId = Integer.parseInt(req.getParameter("destination-id"));
-						
-						ArrayList<DestinationRating> ratings = ratingService.getAllRatings(destinationId);
-						
-						objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-						String json = objectMapper.writeValueAsString(ratings);
-						
-						res.getWriter().append(json);
-						res.setContentType("application/json");
-						res.setStatus(200);
-					} else {
-						res.setStatus(404);
-					}
-					
-				} catch (JsonProcessingException e) {
-					res.setStatus(400);
-					e.printStackTrace();
-				} catch (IOException e) {
-					res.setStatus(400);
-					e.printStackTrace();
-				} catch (SQLException e) {
-					res.setStatus(400);
-					e.printStackTrace();
-				}
-			}
+				res.setStatus(400);
+			} 
+//			else {
+//				
+//				try {
+//					if (req.getParameter("destination-id") != null) {
+//						Integer destinationId = Integer.parseInt(req.getParameter("destination-id"));
+//						Destination destination = destinationService.getOneDestination(destinationId);
+//						ArrayList<DestinationRating> ratings = ratingService.getAllRatings(destinationId);
+//						
+//						objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+//						String json = objectMapper.writeValueAsString(ratings);
+//						
+//						res.getWriter().append(json);
+//						res.setContentType("application/json");
+//						res.setStatus(200);
+//					} else {
+//						res.setStatus(404);
+//					}
+//					
+//				} catch (JsonProcessingException e) {
+//					res.setStatus(400);
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					res.setStatus(400);
+//					e.printStackTrace();
+//				} catch (SQLException e) {
+//					res.setStatus(400);
+//					e.printStackTrace();
+//				}
+//			}
 		} else {
 			logger.info("GET request made without login");
 			res.setStatus(401);
@@ -127,12 +145,36 @@ public class RatingServlet extends HttpServlet {
 			
 			try {
 				DestinationRating ratingData = objectMapper.readValue(jsonString, DestinationRating.class);
-				DestinationRating rating = ratingService.createDestinationRating(ratingData);
-				String insertedUserJSON = objectMapper.writeValueAsString(rating);
+				if(ratingData.getRating() != null && ratingData.getUser_id() != null && ratingData.getDestination_id() != null) {
 				
-				res.getWriter().append(insertedUserJSON);
-				res.setContentType("application/json");
-				res.setStatus(201);
+					Integer destinationId = ratingData.getDestination_id();
+					DestinationDTO destination = destinationService.getOneDestination(destinationId);
+					
+					if (destination != null) {
+						
+						Integer withlistId = destination.getWithlist_id();
+						Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+						if (session.getAttribute("access").equals("admin") || withlistService.isMember(sessionId, withlistId)) {
+							DestinationRating rating = ratingService.createDestinationRating(ratingData);
+							if (rating != null) {								
+								String insertedUserJSON = objectMapper.writeValueAsString(rating);
+								
+								res.getWriter().append(insertedUserJSON);
+								res.setContentType("application/json");
+								res.setStatus(201);
+							} else {
+								res.setStatus(400);
+							}
+						} else {
+							res.setStatus(401);
+						}
+					} else {
+						res.setStatus(400);
+					}
+				} else {
+					res.setStatus(400);
+					logger.debug("Null values in rating, user id, or destination id.");
+				}
 				
 			} catch (JsonProcessingException e) {
 				res.setStatus(400);
@@ -151,14 +193,14 @@ public class RatingServlet extends HttpServlet {
 	protected void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		logger.info("PUT request made to " + req.getRequestURI());
 		HttpSession session = req.getSession(false);
-
+		
 		if (session != null) {
 			if (req.getPathInfo() == null || req.getPathInfo().split("/").length != 2) {
 				res.setStatus(400);
 			} else {
-				String[] params = req.getPathInfo().split("/");
 				
 				try {
+					String[] params = req.getPathInfo().split("/");
 					BufferedReader reader = req.getReader();
 					StringBuilder sb = new StringBuilder();
 					String line;
@@ -168,15 +210,25 @@ public class RatingServlet extends HttpServlet {
 					}
 					
 					String jsonString = sb.toString();
-					
 					DestinationRating ratingData = objectMapper.readValue(jsonString, DestinationRating.class);
-					DestinationRating rating = ratingService.updateDestinationRating(ratingData,
-							Integer.parseInt(params[1]));
-					String insertedUserJSON = objectMapper.writeValueAsString(rating);
 					
-					res.getWriter().append(insertedUserJSON);
-					res.setContentType("application/json");
-					res.setStatus(201);
+					if(ratingData.getId() != null && ratingData.getRating() != null && ratingData.getUser_id() != null) {
+						
+						if (userService.isSessionUserAuthorizedorAdmin(session, ratingData.getUser_id())) {							
+							DestinationRating rating = ratingService.updateDestinationRating(ratingData,
+									Integer.parseInt(params[1]));
+							String insertedUserJSON = objectMapper.writeValueAsString(rating);
+							
+							res.getWriter().append(insertedUserJSON);
+							res.setContentType("application/json");
+							res.setStatus(201);
+						} else {
+							res.setStatus(401);
+						}
+						
+					} else {
+						res.setStatus(400);
+					}
 					
 				} catch (JsonProcessingException e) {
 					res.setStatus(400);

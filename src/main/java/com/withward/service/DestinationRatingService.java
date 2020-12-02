@@ -20,8 +20,8 @@ public class DestinationRatingService {
 		destRatingRepo.insertDestinationRating(destination_rating);
 	}
 	
-	public void updateDestinationRating(DestinationRating destination_rating, Integer id)throws SQLException {
-		destRatingRepo.updateDestinationRating(destination_rating, id);
+	public DestinationRating updateDestinationRating(DestinationRating destination_rating, Integer id)throws SQLException {
+		return destRatingRepo.updateDestinationRating(destination_rating, id);
 	}
 
 }

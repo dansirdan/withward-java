@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.withward.DTO.WithlistDTO;
 import com.withward.model.Withlist;
+import com.withward.service.UserService;
 import com.withward.service.WithlistService;
 
 /**
@@ -29,6 +30,7 @@ public class WithlistServlet extends HttpServlet {
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private WithlistService withlistService = new WithlistService();
+	private UserService userService = new UserService();
 
 	private static final long serialVersionUID = 1L;
 
@@ -52,14 +54,23 @@ public class WithlistServlet extends HttpServlet {
 			if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
 				try {
 					Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
-					WithlistDTO withlist = withlistService.getOneWithlist(id);
+					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
 
-					objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-					String json = objectMapper.writeValueAsString(withlist);
-
-					res.getWriter().append(json);
-					res.setContentType("application/json");
-					res.setStatus(200);
+					if (withlistService.isMember(sessionId, id)) {							
+						WithlistDTO withlist = withlistService.getOneWithlist(id);
+						if (withlist != null) {														
+							objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+							String json = objectMapper.writeValueAsString(withlist);
+							
+							res.getWriter().append(json);
+							res.setContentType("application/json");
+							res.setStatus(200);
+						} else {
+							res.setStatus(400);
+						}
+					} else {
+						res.setStatus(401);
+					}
 				} catch (NumberFormatException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -79,14 +90,20 @@ public class WithlistServlet extends HttpServlet {
 				try {
 					if (req.getParameter("user-id") != null) {
 						Integer userId = Integer.parseInt(req.getParameter("user-id"));
-						ArrayList<Withlist> withlists = withlistService.getAllWithlists(userId);
-
-						objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-						String json = objectMapper.writeValueAsString(withlists);
-
-						res.getWriter().append(json);
-						res.setContentType("application/json");
-						res.setStatus(200);
+						
+						if (userService.isSessionUserAuthorizedorAdmin(session, userId)) {							
+							ArrayList<Withlist> withlists = withlistService.getAllWithlists(userId);
+							
+							objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+							String json = objectMapper.writeValueAsString(withlists);
+							
+							res.getWriter().append(json);
+							res.setContentType("application/json");
+							res.setStatus(200);
+						} else {
+							res.setStatus(401);
+						}
+						
 					} else {
 						res.setStatus(404);
 					}
@@ -116,7 +133,7 @@ public class WithlistServlet extends HttpServlet {
 		logger.info("POST request made to " + req.getRequestURI());
 
 		HttpSession session = req.getSession(false);
-		
+
 		if (session != null) {
 			BufferedReader reader = req.getReader();
 			StringBuilder sb = new StringBuilder();
@@ -130,12 +147,29 @@ public class WithlistServlet extends HttpServlet {
 
 			try {
 				Withlist withlistData = objectMapper.readValue(jsonString, Withlist.class);
-				Withlist withlist = withlistService.createWithlist(withlistData);
-				String insertedUserJSON = objectMapper.writeValueAsString(withlist);
 
-				res.getWriter().append(insertedUserJSON);
-				res.setContentType("application/json");
-				res.setStatus(201);
+				if (withlistData.getDescription() != null && withlistData.getTitle() != null
+						&& withlistData.getOwnerId() != null) {
+					if (userService.isSessionUserAuthorizedorAdmin(session, withlistData.getOwnerId())) {						
+						Withlist withlist = withlistService.createWithlist(withlistData);
+						if (withlist != null) {
+							String insertedUserJSON = objectMapper.writeValueAsString(withlist);
+							
+							res.getWriter().append(insertedUserJSON);
+							res.setContentType("application/json");
+							res.setStatus(201);
+						} else {
+							res.setStatus(400);
+						}
+					} else {
+						logger.debug("Withlist creation failed. Unauthorized request");
+						res.setStatus(401);
+					}
+					
+				} else {
+					logger.debug("Withlist creation failed. Withlist data cannot be null.");
+					res.setStatus(400);
+				}
 
 			} catch (JsonProcessingException e) {
 				res.setStatus(400);
@@ -161,9 +195,9 @@ public class WithlistServlet extends HttpServlet {
 			if (req.getPathInfo() == null || req.getPathInfo().split("/").length != 2) {
 				res.setStatus(400);
 			} else {
-				String[] params = req.getPathInfo().split("/");
 
 				try {
+					String[] params = req.getPathInfo().split("/");
 					BufferedReader reader = req.getReader();
 					StringBuilder sb = new StringBuilder();
 					String line;
@@ -173,15 +207,25 @@ public class WithlistServlet extends HttpServlet {
 					}
 
 					String jsonString = sb.toString();
-
-					Withlist withlistData = objectMapper.readValue(jsonString, Withlist.class);
-					Withlist withlist = withlistService.updateWithlist(withlistData, Integer.parseInt(params[1]));
-					String insertedUserJSON = objectMapper.writeValueAsString(withlist);
-
-					res.getWriter().append(insertedUserJSON);
-					res.setContentType("application/json");
-					res.setStatus(201);
-
+					
+					Integer paramId = Integer.parseInt(params[1]);
+					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+					if (session.getAttribute("access").equals("admin") || withlistService.isAdmin(sessionId, paramId)) {						
+						Withlist withlistData = objectMapper.readValue(jsonString, Withlist.class);
+						Withlist withlist = withlistService.updateWithlist(withlistData, paramId);
+						if (withlist != null) {
+							String insertedUserJSON = objectMapper.writeValueAsString(withlist);
+							
+							res.getWriter().append(insertedUserJSON);
+							res.setContentType("application/json");
+							res.setStatus(201);
+						} else {
+							res.setStatus(400);
+						}
+					} else {
+						res.setStatus(401);
+					}
+					
 				} catch (JsonProcessingException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -209,8 +253,14 @@ public class WithlistServlet extends HttpServlet {
 			} else {
 				try {
 					String[] params = req.getPathInfo().split("/");
-					withlistService.deleteWithlist(Integer.parseInt(params[1]));
-					res.setStatus(204);
+					Integer paramId = Integer.parseInt(params[1]);
+					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+					if (session.getAttribute("access").equals("admin") || withlistService.isAdmin(sessionId, paramId)) {
+						withlistService.deleteWithlist(Integer.parseInt(params[1]));
+						res.setStatus(204);
+					} else {
+						res.setStatus(401);
+					}
 				} catch (NumberFormatException e) {
 					res.setStatus(400);
 					e.printStackTrace();

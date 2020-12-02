@@ -2,6 +2,8 @@ package com.withward.service;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import javax.servlet.http.HttpSession;
+
 import com.withward.DTO.UserDTO;
 import com.withward.model.User;
 import com.withward.repository.UserDAO;
@@ -16,6 +18,10 @@ public class UserService {
 	
 	public boolean isAuthenticated(String username, String password) throws SQLException{
 		return userRepository.authenticateUser(username, password);
+	}
+	
+	public boolean isAdmin(String username) throws SQLException {
+		return userRepository.authAdmin(username);
 	}
 	
 	public UserDTO getOneUser(Integer userId)throws SQLException {
@@ -34,7 +40,16 @@ public class UserService {
 		return userRepository.updateUser(user, id);
 	}
 	
-	public void deleteUser(Integer userId)throws SQLException {
-		userRepository.deleteOne(userId);
+	public boolean deleteUser(Integer userId)throws SQLException {
+		return userRepository.deleteOne(userId);
+	}
+	
+	public boolean isSessionUserAuthorizedorAdmin(HttpSession session, Integer userId) {
+		
+		Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+		if (session.getAttribute("access").equals("admin") || sessionId == userId) {
+			return true;
+		}
+		return false;
 	}
 }

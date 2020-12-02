@@ -52,7 +52,7 @@ public class DestinationRatingDAO {
 	 */
 	public DestinationRating getDestinationRating(Integer destinationRatingId) throws SQLException {
 
-		DestinationRating destination_user = null;
+		DestinationRating destinationRating = null;
 		String sql = "SELECT * " + "FROM ratings " + "WHERE rating_id = ?";
 		Connection connection = JDBC.getConnection();
 
@@ -64,11 +64,11 @@ public class DestinationRatingDAO {
 			Integer destinationId = rs.getInt("destination_id");
 			Integer userId = rs.getInt("user_id");
 			Float rating = rs.getFloat("rating_value");
-			destination_user = new DestinationRating(id, destinationId, userId, rating);
+			destinationRating = new DestinationRating(id, destinationId, userId, rating);
 		}
 		pstmt.close();
 		connection.close();
-		return destination_user;
+		return destinationRating;
 	}
 
 	/**
@@ -88,6 +88,7 @@ public class DestinationRatingDAO {
 		pstmt.setInt(2, destination_rating.getUser_id());
 		pstmt.setFloat(3, destination_rating.getRating());
 
+		DestinationRating newRating = null;
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("Inserting user failed, no rows were affected");
 		}
@@ -96,14 +97,15 @@ public class DestinationRatingDAO {
 		ResultSet generatedKeys = pstmt.getGeneratedKeys();
 		if (generatedKeys.next()) {
 			autoId = generatedKeys.getInt(1);
+			newRating =  new DestinationRating(autoId, destination_rating.getDestination_id(), destination_rating.getUser_id(),
+					destination_rating.getRating());
 		} else {
 			throw new SQLException("Inserting user failed, no ID generated.");
 		}
 
 		pstmt.close();
 		connection.close();
-		return new DestinationRating(autoId, destination_rating.getDestination_id(), destination_rating.getUser_id(),
-				destination_rating.getRating());
+		return newRating;
 	}
 
 	/**
@@ -124,14 +126,18 @@ public class DestinationRatingDAO {
 
 		pstmt.setFloat(1, destination_rating.getRating());
 		pstmt.setInt(2, id);
-
+		
+		DestinationRating newRating = null;
+		
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("Inserting destination failed, no rows were affected");
+		} else {
+			newRating = new DestinationRating(id, destination_rating.getDestination_id(), destination_rating.getUser_id(),
+					destination_rating.getRating());
 		}
 
 		pstmt.close();
 		connection.close();
-		return new DestinationRating(id, destination_rating.getDestination_id(), destination_rating.getUser_id(),
-				destination_rating.getRating());
+		return newRating;
 	}
 }

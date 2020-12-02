@@ -31,13 +31,27 @@ public class WithlistService {
 	
 	public WithlistDTO getOneWithlist(Integer withlistId) throws SQLException {
 		Withlist withlist = wlRepo.getWithlist(withlistId);
-		ArrayList<Destination> destinations = destRepository.getAll(withlistId);
-		ArrayList<UserDTO> users = wlUserRepo.getAllWithlistUsers(withlistId);
-		return new WithlistDTO(withlist.getId(), withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription(), destinations, users);
+		if (withlist != null) {			
+			ArrayList<Destination> destinations = destRepository.getAll(withlistId);
+			ArrayList<UserDTO> users = wlUserRepo.getAllWithlistUsers(withlistId);
+			return new WithlistDTO(withlist.getId(), withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription(), destinations, users);
+		} else {
+			return null;
+		}
 	}
 	
 	public boolean isAdmin(Integer user_id, Integer withlist_id) throws SQLException {
 		return wlRepo.isAdmin(user_id, withlist_id);
+	}
+	
+	public boolean isMember(Integer user_id, Integer withlist_id) throws SQLException {
+		ArrayList<UserDTO> users = wlUserRepo.getAllWithlistUsers(withlist_id);
+		for (UserDTO user : users) {
+			if (user.getId() == user_id) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public WithlistUser addUserToWithlist(Integer userId, Integer withlistId) throws SQLException {
@@ -52,7 +66,8 @@ public class WithlistService {
 		return wlRepo.updateWithlist(withlist, id);
 	}
 	
-	public void deleteWithlist(Integer withlistId) throws SQLException {
-		wlRepo.deleteOne(withlistId);
+	public boolean deleteWithlist(Integer withlistId) throws SQLException {
+		return wlRepo.deleteOne(withlistId);
 	}
+	
 }

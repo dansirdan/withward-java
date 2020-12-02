@@ -61,6 +61,7 @@ public class WithlistUserDAO {
 		pstmt.setInt(1, userId);
 		pstmt.setInt(2, withlistId);
 
+		WithlistUser newWLUser = null;
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("Inserting user failed, no rows were affected");
 		}
@@ -69,13 +70,13 @@ public class WithlistUserDAO {
 		ResultSet generatedKeys = pstmt.getGeneratedKeys();
 		if (generatedKeys.next()) {
 			autoId = generatedKeys.getInt(1);
+			newWLUser = new WithlistUser(autoId, withlistId, userId);
+
 		} else {
 			throw new SQLException("Inserting user failed, no ID generated.");
 		}
-
 		pstmt.close();
 		connection.close();
-		WithlistUser newWLUser = new WithlistUser(autoId, withlistId, userId);
 		return newWLUser;
 	}
 }

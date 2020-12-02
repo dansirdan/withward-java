@@ -48,15 +48,27 @@ public class WithlistUserServlet extends HttpServlet {
 				
 				Integer userId = Integer.parseInt(req.getParameter("user-id"));
 				Integer withlistId = Integer.parseInt(req.getParameter("withlist-id"));
-
-//				if (withlistService.isAdmin(SESSION ID, withlist_id))
-				
-				WithlistUser withlistuser = withlistService.addUserToWithlist(userId, withlistId);
-				String insertedUserJSON = objectMapper.writeValueAsString(withlistuser);
-
-				res.getWriter().append(insertedUserJSON);
-				res.setContentType("application/json");
-				res.setStatus(201);
+				if (userId != null && withlistId != null) {					
+					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+					if (withlistService.isAdmin(sessionId, withlistId)) {
+						
+						WithlistUser withlistuser = withlistService.addUserToWithlist(userId, withlistId);
+						if (withlistuser != null) {							
+							String insertedUserJSON = objectMapper.writeValueAsString(withlistuser);
+							
+							res.getWriter().append(insertedUserJSON);
+							res.setContentType("application/json");
+							res.setStatus(201);
+						} else {
+							res.setStatus(400);
+						}
+					} else {
+						res.setStatus(401);
+					}
+				} else {
+					res.setStatus(400);
+				}
+	
 
 			} catch (JsonProcessingException e) {
 				res.setStatus(400);

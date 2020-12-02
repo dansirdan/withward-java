@@ -42,8 +42,7 @@ public class LoginServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
 	 *      response) Logout method to logout user
 	 */
-	protected void doGet(HttpServletRequest req, HttpServletResponse res)
-			throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
 		HttpSession session = req.getSession(false);
 		if (session != null) {
@@ -59,8 +58,7 @@ public class LoginServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-	protected void doPost(HttpServletRequest req, HttpServletResponse res)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
 		BufferedReader reader = req.getReader();
 		StringBuilder sb = new StringBuilder();
@@ -73,40 +71,80 @@ public class LoginServlet extends HttpServlet {
 		String jsonString = sb.toString();
 		HttpSession session = req.getSession();
 
-		try {
-			User loginData = objectMapper.readValue(jsonString, User.class);
-			String username = loginData.getUsername();
-			String password = loginData.getPassword();
-			if (username != null && password != null) {
-				username = loginData.getUsername();
-				password = loginData.getPassword();
-			} else {
-				username = (String) session.getAttribute("username");
-				password = (String) session.getAttribute("password");
+		if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
+			try {
+				String authLogin = req.getPathInfo().split("/")[1];
+				if (authLogin.equals("admin")) {
+					User loginData = objectMapper.readValue(jsonString, User.class);
+					String username = loginData.getUsername();
+					String password = loginData.getPassword();
+					if (username != null && password != null) {
+						username = loginData.getUsername();
+						password = loginData.getPassword();
+					} else {
+						username = (String) session.getAttribute("username");
+						password = (String) session.getAttribute("password");
+					}
+
+					if (userService.isAuthenticated(username, password) && userService.isAdmin(username)) {
+						session.setAttribute("username", username);
+						session.setAttribute("password", password);
+						session.setAttribute("access", "admin");
+
+						UserDTO userData = userService.getByUsername(username);
+						session.setAttribute("userId", userData.getId());
+						res.getWriter().append("YOU LOGGED IN as an ADMIN");
+						res.setStatus(200);
+					} else {
+						res.getWriter().append("INCORRECT LOGIN");
+						res.setStatus(401);
+					}
+				}
+			} catch (SQLException e) {
+				res.setStatus(400);
+				e.printStackTrace();
+			} catch (ArrayIndexOutOfBoundsException e) {
+				res.setStatus(400);
+				e.printStackTrace();
+			} catch (JsonProcessingException e) {
+				res.setStatus(400);
+				e.printStackTrace();
 			}
+		} else {
+			try {
+				User loginData = objectMapper.readValue(jsonString, User.class);
+				String username = loginData.getUsername();
+				String password = loginData.getPassword();
+				if (username != null && password != null) {
+					username = loginData.getUsername();
+					password = loginData.getPassword();
+				} else {
+					username = (String) session.getAttribute("username");
+					password = (String) session.getAttribute("password");
+				}
 
-			if (userService.isAuthenticated(username, password)) {
-				session.setAttribute("username", username);
-				session.setAttribute("password", password);
+				if (userService.isAuthenticated(username, password)) {
+					session.setAttribute("username", username);
+					session.setAttribute("password", password);
+					session.setAttribute("access", "user");
 
-				UserDTO userData = userService.getByUsername(username);
-				session.setAttribute("userId", userData.getId());
-				res.getWriter().append("YOU LOGGED IN");
-				res.setStatus(200);
-			} else {
-				res.getWriter().append("INCORRECT LOGIN");
-				res.setStatus(401);
+					UserDTO userData = userService.getByUsername(username);
+					session.setAttribute("userId", userData.getId());
+					res.getWriter().append("YOU LOGGED IN");
+					res.setStatus(200);
+				} else {
+					res.getWriter().append("INCORRECT LOGIN");
+					res.setStatus(401);
+				}
+				logger.debug("LOGIN ATTEMPT made at " + req.getRequestURI());
+
+			} catch (JsonProcessingException e) {
+				res.setStatus(400);
+				e.printStackTrace();
+			} catch (SQLException e) {
+				res.setStatus(400);
+				e.printStackTrace();
 			}
-			logger.debug("LOGIN ATTEMPT made at " + req.getRequestURI());
-
-		} catch (JsonProcessingException e) {
-			res.setStatus(400);
-			e.printStackTrace();
-		} catch (SQLException e) {
-			res.setStatus(400);
-			e.printStackTrace();
 		}
-
 	}
-
 }

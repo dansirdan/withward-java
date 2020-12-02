@@ -69,6 +69,20 @@ public class UserDAO {
 			return false;
 		}
 	}
+	
+	public boolean authAdmin(String username) throws SQLException {
+		String sql = "SELECT is_admin FROM users WHERE username = ?";
+		Connection connection = JDBC.getConnection();
+
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setString(1, username);
+		ResultSet resultSet = pstmt.executeQuery();
+		resultSet.next();
+		Boolean isAdmin = resultSet.getBoolean("is_admin");
+		pstmt.close();
+		connection.close();
+		return isAdmin;
+	}
 
 	/**
 	 * Method to interact with the database to get one user record.
@@ -145,18 +159,21 @@ public class UserDAO {
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("No Rows Affected");
 		}
+		
+		UserDTO newUser = null;
 
 		int autoId = 0;
 		ResultSet generatedKeys = pstmt.getGeneratedKeys();
 		if (generatedKeys.next()) {
 			autoId = generatedKeys.getInt(1);
+			newUser = new UserDTO(autoId, user.getUsername(), user.getPhoto());
 		} else {
 			throw new SQLException("ID generation failed");
 		}
 
 		pstmt.close();
 		connection.close();
-		return new UserDTO(autoId, user.getUsername(), user.getPhoto());
+		return newUser;
 
 	}
 
@@ -180,14 +197,17 @@ public class UserDAO {
 		pstmt.setString(4, user.getPhoto());
 		pstmt.setInt(5, id);
 
+		UserDTO updatedUser = null;
+		
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("No Rows Affected");
+		} else {
+			updatedUser = new UserDTO(id, user.getUsername(), user.getPhoto());
 		}
-
 		pstmt.close();
-		connection.close();
+		connection.close();		
+		return updatedUser;
 
-		return new UserDTO(id, user.getUsername(), user.getPhoto());
 	}
 
 	/**

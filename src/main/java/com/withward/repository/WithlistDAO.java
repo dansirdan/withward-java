@@ -121,19 +121,21 @@ public class WithlistDAO {
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("No Rows Affected");
 		}
+		
+		Withlist newWithlist = null;
 
 		int autoId = 0;
 		ResultSet generatedKeys = pstmt.getGeneratedKeys();
 		if (generatedKeys.next()) {
 			autoId = generatedKeys.getInt(1);
+			newWithlist = new Withlist(autoId, withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription());
 		} else {
 			throw new SQLException("ID generation failed");
 		}
 
 		pstmt.close();
 		connection.close();
-		return new Withlist(autoId, withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription());
-
+		return newWithlist;
 	}
 
 	/**
@@ -156,13 +158,17 @@ public class WithlistDAO {
 		pstmt.setString(2, withlist.getDescription());
 		pstmt.setInt(4, id);
 
+		Withlist updatedWithlist = null;
+		
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("No Rows Affected");
+		} else {
+			updatedWithlist = new Withlist(id, withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription());
 		}
 
 		pstmt.close();
 		connection.close();
-		return new Withlist(id, withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription());
+		return updatedWithlist;
 	}
 
 	/**

@@ -42,65 +42,76 @@ public class UserServlet extends HttpServlet {
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-	 *      response)
+	 *      response) IF a USER is logged in THEN they SHOULD be able to see all
+	 *      users IF a USER is not logged in THEN they SHOULD get a 401
 	 */
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-
+		HttpSession session = req.getSession(false);
 		logger.info("GET request made to " + req.getRequestURI());
 
-		if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
-			try {
-				Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
-				UserDTO user = userService.getOneUser(id);
+		if (session != null) {
+			if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
+				try {
+					Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
+					UserDTO user = userService.getOneUser(id);
+					
+					if (user != null) {						
+						objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+						String json = objectMapper.writeValueAsString(user);
+						
+						res.getWriter().append(json);
+						res.setContentType("application/json");
+						res.setStatus(200);
+					} else {
+						res.setStatus(400);
+					}
+				} catch (NumberFormatException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				} catch (SQLException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				} catch (ArrayIndexOutOfBoundsException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				} catch (JsonProcessingException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				}
+			} else if (req.getPathInfo() != null && req.getPathInfo().split("/").length > 2) {
+				res.setStatus(400);
+			} else {
+				try {
+					ArrayList<UserDTO> users = userService.getAllUsers();
 
-				objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-				String json = objectMapper.writeValueAsString(user);
+					objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+					String json = objectMapper.writeValueAsString(users);
 
-				res.getWriter().append(json);
-				res.setContentType("application/json");
-				res.setStatus(200);
-			} catch (NumberFormatException e) {
-				res.setStatus(400);
-				e.printStackTrace();
-			} catch (SQLException e) {
-				res.setStatus(400);
-				e.printStackTrace();
-			} catch (ArrayIndexOutOfBoundsException e) {
-				res.setStatus(400);
-				e.printStackTrace();
-			} catch (JsonProcessingException e) {
-				res.setStatus(400);
-				e.printStackTrace();
+					res.getWriter().append(json);
+					res.setContentType("application/json");
+					res.setStatus(200);
+
+				} catch (JsonProcessingException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				} catch (IOException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				} catch (SQLException e) {
+					res.setStatus(400);
+					e.printStackTrace();
+				}
 			}
-		} else if (req.getPathInfo() != null && req.getPathInfo().split("/").length > 2) {
-			res.setStatus(400);
 		} else {
-			try {
-				ArrayList<UserDTO> users = userService.getAllUsers();
-
-				objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-				String json = objectMapper.writeValueAsString(users);
-
-				res.getWriter().append(json);
-				res.setContentType("application/json");
-				res.setStatus(200);
-
-			} catch (JsonProcessingException e) {
-				res.setStatus(400);
-				e.printStackTrace();
-			} catch (IOException e) {
-				res.setStatus(400);
-				e.printStackTrace();
-			} catch (SQLException e) {
-				res.setStatus(400);
-				e.printStackTrace();
-			}
+			logger.info("GET request made without login");
+			res.setStatus(401);
 		}
 	}
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
+	 * 
 	 */
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
@@ -118,16 +129,25 @@ public class UserServlet extends HttpServlet {
 
 		try {
 			User userdata = objectMapper.readValue(jsonString, User.class);
-
-			if (userdata.getUsername() != null && userService.getByUsername(userdata.getUsername()) == null) {
-				UserDTO user = userService.createUser(userdata);
-				String insertedUserJSON = objectMapper.writeValueAsString(user);
-
-				res.getWriter().append(insertedUserJSON);
-				res.setContentType("application/json");
-				res.setStatus(201);
+			if (userdata.getUsername() != null && userdata.getEmail() != null && userdata.getPassword() != null) {
+				if (userService.getByUsername(userdata.getUsername()) == null) {
+					UserDTO user = userService.createUser(userdata);
+					if (user != null) {						
+						String insertedUserJSON = objectMapper.writeValueAsString(user);
+						
+						res.getWriter().append(insertedUserJSON);
+						res.setContentType("application/json");
+						res.setStatus(201);
+					} else {
+						res.setStatus(400);
+					}
+				} else {
+					logger.debug("Login Creation Failed, Username is already in use.");
+					res.setStatus(400);
+				}
 			} else {
-				res.getWriter().append("Login Creation Failed, Username is already in use.");
+				logger.debug("Login Creation Failed, username, email, password must not be null.");
+				res.setStatus(400);
 			}
 
 		} catch (JsonProcessingException e) {
@@ -150,27 +170,36 @@ public class UserServlet extends HttpServlet {
 			if (req.getPathInfo() == null || req.getPathInfo().split("/").length != 2) {
 				res.setStatus(400);
 			} else {
-				String[] params = req.getPathInfo().split("/");
-				
 				try {
+					String[] params = req.getPathInfo().split("/");
 					BufferedReader reader = req.getReader();
 					StringBuilder sb = new StringBuilder();
 					String line;
-					
+
 					while ((line = reader.readLine()) != null) {
 						sb.append(line);
 					}
-					
+
 					String jsonString = sb.toString();
-					
+
 					User userdata = objectMapper.readValue(jsonString, User.class);
-					UserDTO user = userService.updateUser(userdata, Integer.parseInt(params[1]));
-					String insertedUserJSON = objectMapper.writeValueAsString(user);
-					
-					res.getWriter().append(insertedUserJSON);
-					res.setContentType("application/json");
-					res.setStatus(201);
-					
+
+					Integer paramId = Integer.parseInt(params[1]);
+					if (userService.isSessionUserAuthorizedorAdmin(session, paramId)) {
+						UserDTO user = userService.updateUser(userdata, paramId);
+						if (user != null) {
+							String insertedUserJSON = objectMapper.writeValueAsString(user);
+
+							res.getWriter().append(insertedUserJSON);
+							res.setContentType("application/json");
+							res.setStatus(201);
+						} else {
+							res.setStatus(400);
+						}
+					} else {
+						res.setStatus(401);
+					}
+
 				} catch (JsonProcessingException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -180,7 +209,7 @@ public class UserServlet extends HttpServlet {
 				}
 			}
 		} else {
-			logger.info("GET request made without login");
+			logger.info("PUT request made without login");
 			res.setStatus(401);
 		}
 	}
@@ -195,9 +224,23 @@ public class UserServlet extends HttpServlet {
 				res.setStatus(400);
 			} else {
 				try {
+
 					String[] params = req.getPathInfo().split("/");
-					userService.deleteUser(Integer.parseInt(params[1]));
-					res.setStatus(204);
+					Integer paramId = Integer.parseInt(params[1]);
+					if (userService.isSessionUserAuthorizedorAdmin(session, paramId)) {
+						if (userService.deleteUser(paramId)) {
+							logger.info("DELETE authorized, user account deleted and session terminated.");
+							session.invalidate();
+							res.setStatus(204);
+						} else {
+							res.setStatus(400);
+						}
+
+					} else {
+						logger.info("DELETE user attempt without authorization");
+						res.setStatus(401);
+					}
+
 				} catch (NumberFormatException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -207,7 +250,7 @@ public class UserServlet extends HttpServlet {
 				}
 			}
 		} else {
-			logger.info("GET request made without login");
+			logger.info("DELETE request made without login");
 			res.setStatus(401);
 		}
 	}

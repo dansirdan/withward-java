@@ -20,12 +20,18 @@ public class DestinationService {
 
 	public DestinationDTO getOneDestination(Integer destinationId) throws SQLException {
 
-		ArrayList<DestinationRating> ratings = ratingRepository.getAll(destinationId);
 		Destination destination = destRepository.getDestination(destinationId);
-		return new DestinationDTO(destinationId, destination.getWithlist_id(), destination.getName(),
-				destination.getDescription(), destination.getPhoto(), destination.isCompleted(),
-				destination.getAverageRating(), ratings);
+		if (destination != null) {			
+			ArrayList<DestinationRating> ratings = ratingRepository.getAll(destinationId);
+			return new DestinationDTO(destinationId, destination.getWithlist_id(), destination.getName(),
+					destination.getDescription(), destination.getPhoto(), destination.isCompleted(),
+					destination.getAverageRating(), ratings);
+		} else {
+			return null;
+		}
 	}
+	
+//	public boolean Destination
 
 	public Destination createDestination(Destination destination) throws SQLException {
 		return destRepository.insertDestination(destination);
@@ -35,7 +41,7 @@ public class DestinationService {
 		return destRepository.updateDestination(destination, id);
 	}
 
-	public void deleteDestination(Integer destinationId) throws SQLException {
-		destRepository.deleteOne(destinationId);
+	public boolean deleteDestination(Integer destinationId) throws SQLException {
+		return destRepository.deleteOne(destinationId);
 	}
 }

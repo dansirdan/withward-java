@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.withward.DTO.DestinationDTO;
 import com.withward.model.Destination;
 import com.withward.service.DestinationService;
+import com.withward.service.UserService;
+import com.withward.service.WithlistService;
 
 /**
  * Servlet implementation class DestinationServlet
@@ -27,6 +29,8 @@ public class DestinationServlet extends HttpServlet {
 	private static Logger logger = Logger.getLogger(DestinationServlet.class);
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private DestinationService destinationService = new DestinationService();
+	private UserService userService = new UserService();
+	private WithlistService withlistService = new WithlistService();
 
 	private static final long serialVersionUID = 1L;
 
@@ -50,13 +54,17 @@ public class DestinationServlet extends HttpServlet {
 				try {
 					Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
 					DestinationDTO destination = destinationService.getOneDestination(id);
-					
-					objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-					String json = objectMapper.writeValueAsString(destination);
-					
-					res.getWriter().append(json);
-					res.setContentType("application/json");
-					res.setStatus(200);
+
+					if (destination != null) {
+						objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+						String json = objectMapper.writeValueAsString(destination);
+
+						res.getWriter().append(json);
+						res.setContentType("application/json");
+						res.setStatus(200);
+					} else {
+						res.setStatus(400);
+					}
 				} catch (NumberFormatException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -76,19 +84,19 @@ public class DestinationServlet extends HttpServlet {
 				try {
 					if (req.getParameter("withlist-id") != null) {
 						Integer withlistId = Integer.parseInt(req.getParameter("withlist-id"));
-						
+
 						ArrayList<Destination> users = destinationService.getAllDestinations(withlistId);
-						
+
 						objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 						String json = objectMapper.writeValueAsString(users);
-						
+
 						res.getWriter().append(json);
 						res.setContentType("application/json");
 						res.setStatus(200);
 					} else {
 						res.setStatus(404);
 					}
-					
+
 				} catch (JsonProcessingException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -110,8 +118,7 @@ public class DestinationServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-	protected void doPost(HttpServletRequest req, HttpServletResponse res)
-			throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		logger.info("POST request made to " + req.getRequestURI());
 		HttpSession session = req.getSession(false);
 
@@ -119,22 +126,22 @@ public class DestinationServlet extends HttpServlet {
 			BufferedReader reader = req.getReader();
 			StringBuilder sb = new StringBuilder();
 			String line;
-			
+
 			while ((line = reader.readLine()) != null) {
 				sb.append(line);
 			}
-			
+
 			String jsonString = sb.toString();
-			
+
 			try {
 				Destination destinationData = objectMapper.readValue(jsonString, Destination.class);
 				Destination destination = destinationService.createDestination(destinationData);
 				String insertedUserJSON = objectMapper.writeValueAsString(destination);
-				
+
 				res.getWriter().append(insertedUserJSON);
 				res.setContentType("application/json");
 				res.setStatus(201);
-				
+
 			} catch (JsonProcessingException e) {
 				res.setStatus(400);
 				e.printStackTrace();
@@ -158,27 +165,44 @@ public class DestinationServlet extends HttpServlet {
 				res.setStatus(400);
 			} else {
 				String[] params = req.getPathInfo().split("/");
-				
+
 				try {
 					BufferedReader reader = req.getReader();
 					StringBuilder sb = new StringBuilder();
 					String line;
-					
+
 					while ((line = reader.readLine()) != null) {
 						sb.append(line);
 					}
-					
+
 					String jsonString = sb.toString();
-					
+
 					Destination destinationData = objectMapper.readValue(jsonString, Destination.class);
-					Destination destination = destinationService.updateDestination(destinationData,
-							Integer.parseInt(params[1]));
-					String insertedUserJSON = objectMapper.writeValueAsString(destination);
-					
-					res.getWriter().append(insertedUserJSON);
-					res.setContentType("application/json");
-					res.setStatus(201);
-					
+					Integer destinationId = Integer.parseInt(params[1]);
+					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+					DestinationDTO destExists = destinationService.getOneDestination(destinationId);
+					if (destExists != null) {						
+						if (session.getAttribute("access").equals("admin")
+								|| withlistService.isMember(sessionId, destExists.getWithlist_id())) {
+							Destination destination = destinationService.updateDestination(destinationData,
+									Integer.parseInt(params[1]));
+							if (destination != null) {								
+								String insertedUserJSON = objectMapper.writeValueAsString(destination);
+								
+								res.getWriter().append(insertedUserJSON);
+								res.setContentType("application/json");
+								res.setStatus(201);
+							} else {
+								res.setStatus(400);
+							}
+						} else {
+							res.setStatus(401);
+						}
+					} else {
+						res.setStatus(401);
+					}
+
+
 				} catch (JsonProcessingException e) {
 					res.setStatus(400);
 					e.printStackTrace();
@@ -204,8 +228,24 @@ public class DestinationServlet extends HttpServlet {
 			} else {
 				try {
 					String[] params = req.getPathInfo().split("/");
-					destinationService.deleteDestination(Integer.parseInt(params[1]));
-					res.setStatus(204);
+					Integer destinationId = Integer.parseInt(params[1]);
+					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
+					DestinationDTO destination = destinationService.getOneDestination(destinationId);
+					if (destination != null) {
+						if (session.getAttribute("access").equals("admin")
+								|| withlistService.isMember(sessionId, destination.getWithlist_id())) {
+							if (destinationService.deleteDestination(destinationId)) {
+								logger.info("DELETE authorized, destination deleted");
+								res.setStatus(204);
+							} else {
+								res.setStatus(400);
+							}
+						} else {
+							res.setStatus(401);
+						}
+					} else {
+						res.setStatus(400);
+					}
 				} catch (NumberFormatException e) {
 					res.setStatus(400);
 					e.printStackTrace();
