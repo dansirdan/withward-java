@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 import com.withward.model.DestinationRating;
 
+/**
+ * Template Class that represents a Destination and that has multiple ratings
+ */
 public class DestinationDTO {
 
 	private Integer id;
@@ -18,9 +21,9 @@ public class DestinationDTO {
 	public DestinationDTO() {
 		super();
 	}
-	
+
 	public DestinationDTO(Integer id, Integer withlist_id, String name, String description, String photo,
-			boolean completed, Float averageRating,ArrayList<DestinationRating> ratings) {
+			boolean completed, Float averageRating, ArrayList<DestinationRating> ratings) {
 		this.id = id;
 		this.withlist_id = withlist_id;
 		this.name = name;
@@ -31,9 +34,9 @@ public class DestinationDTO {
 		this.ratings = ratings;
 
 	}
-	
-	public DestinationDTO(Integer withlist_id, String name, String description, String photo,
-			boolean completed, Float averageRating,ArrayList<DestinationRating> ratings) {
+
+	public DestinationDTO(Integer withlist_id, String name, String description, String photo, boolean completed,
+			Float averageRating, ArrayList<DestinationRating> ratings) {
 		this.withlist_id = withlist_id;
 		this.name = name;
 		this.description = description;
@@ -91,9 +94,9 @@ public class DestinationDTO {
 	public Integer getWithlist_id() {
 		return withlist_id;
 	}
-	
+
 	public ArrayList<DestinationRating> getRatings() {
 		return this.ratings;
 	}
-	
+
 }

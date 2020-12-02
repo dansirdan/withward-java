@@ -19,6 +19,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 import com.withward.service.UserService;
+import com.withward.DTO.UserDTO;
 import com.withward.model.User;
 
 /**
@@ -50,7 +51,7 @@ public class UserServlet extends HttpServlet {
 		if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
 			try {
 				Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
-				User user = userService.getOneUser(id);
+				UserDTO user = userService.getOneUser(id);
 
 				objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 				String json = objectMapper.writeValueAsString(user);
@@ -75,7 +76,7 @@ public class UserServlet extends HttpServlet {
 			res.setStatus(400);
 		} else {
 			try {
-				ArrayList<User> users = userService.getAllUsers();
+				ArrayList<UserDTO> users = userService.getAllUsers();
 
 				objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 				String json = objectMapper.writeValueAsString(users);
@@ -119,7 +120,7 @@ public class UserServlet extends HttpServlet {
 			User userdata = objectMapper.readValue(jsonString, User.class);
 
 			if (userdata.getUsername() != null && userService.getByUsername(userdata.getUsername()) == null) {
-				User user = userService.createUser(userdata);
+				UserDTO user = userService.createUser(userdata);
 				String insertedUserJSON = objectMapper.writeValueAsString(user);
 
 				res.getWriter().append(insertedUserJSON);
@@ -163,7 +164,7 @@ public class UserServlet extends HttpServlet {
 					String jsonString = sb.toString();
 					
 					User userdata = objectMapper.readValue(jsonString, User.class);
-					User user = userService.updateUser(userdata, Integer.parseInt(params[1]));
+					UserDTO user = userService.updateUser(userdata, Integer.parseInt(params[1]));
 					String insertedUserJSON = objectMapper.writeValueAsString(user);
 					
 					res.getWriter().append(insertedUserJSON);

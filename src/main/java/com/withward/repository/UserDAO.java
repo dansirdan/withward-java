@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.withward.DTO.UserDTO;
 import com.withward.model.User;
 import com.withward.util.JDBC;
 import com.withward.util.SHA;
@@ -19,9 +20,9 @@ public class UserDAO {
 	 * @return ArrayList<User> of all user records. 
 	 * @throws SQLException
 	 */
-	public ArrayList<User> getAll() throws SQLException {
+	public ArrayList<UserDTO> getAll() throws SQLException {
 
-		ArrayList<User> users = new ArrayList<User>();
+		ArrayList<UserDTO> users = new ArrayList<UserDTO>();
 		String sql = "SELECT * " + "FROM users";
 
 		Connection connection = JDBC.getConnection();
@@ -31,7 +32,7 @@ public class UserDAO {
 			Integer id = rs.getInt("user_id");
 			String username = rs.getString("username");
 			String photo = rs.getString("user_photo");
-			User user = new User(id, username, photo);
+			UserDTO user = new UserDTO(id, username, photo);
 			users.add(user);
 		}
 
@@ -75,9 +76,9 @@ public class UserDAO {
 	 * @return User object of found user record. 
 	 * @throws SQLException
 	 */
-	public User getUser(Integer userId) throws SQLException {
+	public UserDTO getUser(Integer userId) throws SQLException {
 
-		User user = null;
+		UserDTO user = null;
 		String sql = "SELECT * " + "FROM users " + "WHERE users.user_id = ?";
 		Connection connection = JDBC.getConnection();
 		PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -87,7 +88,7 @@ public class UserDAO {
 			Integer id = rs.getInt("user_id");
 			String username = rs.getString("username");
 			String photo = rs.getString("user_photo");
-			user = new User(id, username, photo);
+			user = new UserDTO(id, username, photo);
 		}
 		pstmt.close();
 		connection.close();
@@ -100,9 +101,9 @@ public class UserDAO {
 	 * @return User object of found user record. 
 	 * @throws SQLException
 	 */
-	public User getUserByUsername(String queryUsername) throws SQLException {
+	public UserDTO getUserByUsername(String queryUsername) throws SQLException {
 
-		User user = null;
+		UserDTO user = null;
 		String sql = "SELECT * " + "FROM users " + "WHERE users.username = ?";
 		Connection connection = JDBC.getConnection();
 		PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -112,7 +113,7 @@ public class UserDAO {
 			Integer id = rs.getInt("user_id");
 			String username = rs.getString("username");
 			String photo = rs.getString("user_photo");
-			user = new User(id, username, photo);
+			user = new UserDTO(id, username, photo);
 		}
 		pstmt.close();
 		connection.close();
@@ -125,7 +126,7 @@ public class UserDAO {
 	 * @return User object of inserted user record. 
 	 * @throws SQLException
 	 */
-	public User insertUser(User user) throws SQLException {
+	public UserDTO insertUser(User user) throws SQLException {
 		String sql = "INSERT INTO users " + "(username, user_email, user_salt, user_password, user_photo) " + "VALUES "
 				+ "(?,?,?,?,?)";
 
@@ -155,7 +156,7 @@ public class UserDAO {
 
 		pstmt.close();
 		connection.close();
-		return new User(autoId, user.getUsername(), user.getEmail(), user.getPassword(), user.getPhoto());
+		return new UserDTO(autoId, user.getUsername(), user.getPhoto());
 
 	}
 
@@ -166,7 +167,7 @@ public class UserDAO {
 	 * @return User object of updated destination record. 
 	 * @throws SQLException
 	 */
-	public User updateUser(User user, Integer id) throws SQLException {
+	public UserDTO updateUser(User user, Integer id) throws SQLException {
 		String sql = "UPDATE users " + "SET username = ?, " + "user_email = ?, " + "user_password = ?, "
 				+ "user_photo = ? " + "WHERE user_id = ?";
 
@@ -186,7 +187,7 @@ public class UserDAO {
 		pstmt.close();
 		connection.close();
 
-		return new User(id, user.getUsername(), user.getEmail(), user.getPassword(), user.getPhoto());
+		return new UserDTO(id, user.getUsername(), user.getPhoto());
 	}
 
 	/**

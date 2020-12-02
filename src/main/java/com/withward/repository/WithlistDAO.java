@@ -12,6 +12,14 @@ import com.withward.model.Withlist;
 import com.withward.util.JDBC;
 
 public class WithlistDAO {
+	/**
+	 * Method to interact with the database to get all withlist records that belong
+	 * to a specific user and return them as an ArrayList.
+	 * 
+	 * @param user_id id value of user
+	 * @return ArrayList<Withlist>
+	 * @throws SQLException
+	 */
 	public ArrayList<Withlist> getAll(Integer user_id) throws SQLException {
 
 		ArrayList<Withlist> withlists = new ArrayList<Withlist>();
@@ -34,6 +42,15 @@ public class WithlistDAO {
 		return withlists;
 	}
 
+	/**
+	 * Method to interact with the database to confirm if the requesting user is the
+	 * owner of the withlist
+	 * 
+	 * @param user_id     id value of user
+	 * @param withlist_id id value of withlist
+	 * @return boolean
+	 * @throws SQLException
+	 */
 	public boolean isAdmin(Integer user_id, Integer withlist_id) throws SQLException {
 		String sql = "SELECT owner_id " + "FROM withlists " + "WHERE withlist_id = ?";
 
@@ -54,6 +71,13 @@ public class WithlistDAO {
 		return false;
 	}
 
+	/**
+	 * Method to interact with the database to get one withlist record.
+	 * 
+	 * @param withlist_id id value of withlist
+	 * @return Withlist object of found withlist record.
+	 * @throws SQLException
+	 */
 	public Withlist getWithlist(Integer withlist_id) throws SQLException {
 
 		Withlist withlist = null;
@@ -75,6 +99,13 @@ public class WithlistDAO {
 		return withlist;
 	}
 
+	/**
+	 * Method to interact with the database to insert one withlist record.
+	 * 
+	 * @param Withlist object
+	 * @return Withlist object of inserted withlist record.
+	 * @throws SQLException
+	 */
 	public Withlist insertWithlist(Withlist withlist) throws SQLException {
 		String sql = "INSERT INTO withlists " + "(owner_id, withlist_title, withlist_description) " + "VALUES "
 				+ "(?,?,?)";
@@ -105,6 +136,14 @@ public class WithlistDAO {
 
 	}
 
+	/**
+	 * Method to interact with the database to update one withlist record.
+	 * 
+	 * @param Withlist object
+	 * @param id       withlist id that will be updated
+	 * @return Withlist object of updated withlist record.
+	 * @throws SQLException
+	 */
 	public Withlist updateWithlist(Withlist withlist, Integer id) throws SQLException {
 		String sql = "UPDATE withlists " + "SET withlist_title = ?, " + "withlist_description = ? "
 				+ "WHERE withlist_id = ?";
@@ -126,6 +165,13 @@ public class WithlistDAO {
 		return new Withlist(id, withlist.getOwnerId(), withlist.getTitle(), withlist.getDescription());
 	}
 
+	/**
+	 * Method to interact with the database to delete one withlist record.
+	 * 
+	 * @param withlist_id withlist id that will be deleted
+	 * @return boolean if record was deleted
+	 * @throws SQLException
+	 */
 	public boolean deleteOne(Integer withlist_id) throws SQLException {
 
 		String sql = "DELETE FROM withlists WHERE withlist_id = ?";

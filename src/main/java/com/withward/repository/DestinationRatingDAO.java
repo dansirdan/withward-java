@@ -12,6 +12,15 @@ import com.withward.model.DestinationRating;
 import com.withward.util.JDBC;
 
 public class DestinationRatingDAO {
+
+	/**
+	 * Method to interact with the database to get all destination records that
+	 * belong to a specific destination and return them as an ArrayList.
+	 * 
+	 * @param destination_id id value of destination
+	 * @return ArrayList<DestinationRating>
+	 * @throws SQLException
+	 */
 	public ArrayList<DestinationRating> getAll(Integer destination_id) throws SQLException {
 
 		ArrayList<DestinationRating> destination_ratings = new ArrayList<DestinationRating>();
@@ -34,6 +43,13 @@ public class DestinationRatingDAO {
 		return destination_ratings;
 	}
 
+	/**
+	 * Method to interact with the database to get one rating record.
+	 * 
+	 * @param destinationRatingId id value of rating
+	 * @return DestinationRating object of found rating record.
+	 * @throws SQLException
+	 */
 	public DestinationRating getDestinationRating(Integer destinationRatingId) throws SQLException {
 
 		DestinationRating destination_user = null;
@@ -55,6 +71,13 @@ public class DestinationRatingDAO {
 		return destination_user;
 	}
 
+	/**
+	 * Method to interact with the database to insert one rating record.
+	 * 
+	 * @param DestinationRating object
+	 * @return DestinationRating object of inserted rating record.
+	 * @throws SQLException
+	 */
 	public DestinationRating insertDestinationRating(DestinationRating destination_rating) throws SQLException {
 		String sql = "INSERT INTO ratings " + "(destination_id, user_id, rating_value) " + "VALUES " + "(?,?,?)";
 
@@ -83,6 +106,14 @@ public class DestinationRatingDAO {
 				destination_rating.getRating());
 	}
 
+	/**
+	 * Method to interact with the database to update one rating record.
+	 * 
+	 * @param DestinationRating object
+	 * @param id                rating id that will be updated
+	 * @return DestinationRating object of updated rating record.
+	 * @throws SQLException
+	 */
 	public DestinationRating updateDestinationRating(DestinationRating destination_rating, Integer id)
 			throws SQLException {
 		String sql = "UPDATE ratings " + "SET rating_value = ? " + "WHERE rating_id = ?";

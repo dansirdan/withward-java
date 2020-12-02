@@ -14,8 +14,8 @@ import javax.servlet.ServletException;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.withward.DTO.WithlistDTO;
-import com.withward.model.Destination;
+//import com.withward.DTO.WithlistDTO;
+//import com.withward.model.Destination;
 import com.withward.model.Withlist;
 import com.withward.repository.DestinationDAO;
 import com.withward.repository.WithlistDAO;
@@ -25,17 +25,16 @@ public class WithlistServletTest {
 	
 	private WithlistDAO mockedWLDAO;
 	private DestinationDAO mockedDestDAO;
-	private WithlistDTO withlistDTO;
-	private Destination d;
+//	private Destination d;
 	private Withlist w;
 	private ArrayList<Withlist> withlists = new ArrayList<>();
-	private ArrayList<Destination> destinations = new ArrayList<>();
+//	private ArrayList<Destination> destinations = new ArrayList<>();
     
     @Before
     public void setUp() throws Exception {
         mockedWLDAO = mock(WithlistDAO.class);
         mockedDestDAO = mock(DestinationDAO.class);
-        d = new Destination(1, 1, "South Beach", "A beach.", "placeholder", false, 0.0f);
+//        d = new Destination(1, 1, "South Beach", "A beach.", "placeholder", false, 0.0f);
         w = new Withlist(1,1,"BEACHES","A list of beaches");
     }
     

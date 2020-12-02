@@ -1,4 +1,5 @@
 package com.withward.repository;
+
 import java.sql.Connection;
 //import java.sql.Statement;
 import java.sql.ResultSet;
@@ -8,71 +9,73 @@ import java.sql.Statement;
 //import java.sql.Statement;
 import java.util.ArrayList;
 
-import com.withward.model.User;
+import com.withward.DTO.UserDTO;
 import com.withward.model.WithlistUser;
 import com.withward.util.JDBC;
 
 public class WithlistUserDAO {
-	// FOR RETRIEVING ALL users that belong to a withlist
-	public ArrayList<User> getAllWithlistUsers(Integer withlist_id) {
+	/**
+	 * Method to interact with the database to get all withlist-user records that
+	 * belong to a specific withlist and return them as an ArrayList.
+	 * 
+	 * @param withlist_id id value of withlist
+	 * @return ArrayList<UserDTO>
+	 * @throws SQLException
+	 */
+	public ArrayList<UserDTO> getAllWithlistUsers(Integer withlist_id) throws SQLException {
 
-		ArrayList<User> withlist_users = new ArrayList<User>();
-		String sql = "SELECT * " + "FROM withlistusers "
-					+ "RIGHT JOIN users "
-					+ "ON withlistusers.user_id = users.user_id"
-					+ "WHERE withlistusers.withlist_id = ?";
+		ArrayList<UserDTO> withlist_users = new ArrayList<UserDTO>();
+		String sql = "SELECT * " + "FROM withlistusers " + "INNER JOIN users "
+				+ "ON withlistusers.user_id = users.user_id" + " WHERE withlistusers.withlist_id = ?";
 
-		try (Connection connection = JDBC.getConnection()) {
-			PreparedStatement stmt = connection.prepareStatement(sql);
-			stmt.setInt(1, withlist_id);
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				Integer id = rs.getInt("user_id");
-				String username = rs.getString("username");
-				String email = rs.getString("user_email");
-				String password = rs.getString("user_password");
-				String photo = rs.getString("user_photo");
-				User user = new User(id, username, email, password, photo);
-				withlist_users.add(user);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			System.exit(0);
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+		pstmt.setInt(1, withlist_id);
+		ResultSet rs = pstmt.executeQuery();
+		while (rs.next()) {
+			Integer id = rs.getInt("user_id");
+			String username = rs.getString("username");
+			String photo = rs.getString("user_photo");
+			UserDTO user = new UserDTO(id, username, photo);
+			withlist_users.add(user);
 		}
+		pstmt.close();
+		connection.close();
 		return withlist_users;
 	}
-	
-	public WithlistUser createWithlistUser(WithlistUser wluser) {
-		String sql = "INSERT INTO withlistusers "
-				+ "(withlist_id, user_id) " + "VALUES "
-				+ "(?,?)";
 
-		try (Connection connection = JDBC.getConnection()) {
-			connection.setAutoCommit(false);
-			PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	/**
+	 * Method to interact with the database to insert one withlistUser record.
+	 * 
+	 * @param userId     id value of user
+	 * @param withlistId id value of withlist
+	 * @return WithlistUser
+	 * @throws SQLException
+	 */
+	public WithlistUser createWithlistUser(Integer userId, Integer withlistId) throws SQLException {
+		String sql = "INSERT INTO withlistusers " + "(withlist_id, user_id) " + "VALUES " + "(?,?)";
 
-			pstmt.setInt(1, wluser.getWithlist_id());
-			pstmt.setInt(2, wluser.getUser_id());
+		Connection connection = JDBC.getConnection();
+		PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-			if (pstmt.executeUpdate() != 1) {
-				throw new SQLException("Inserting user failed, no rows were affected");
-			}
+		pstmt.setInt(1, userId);
+		pstmt.setInt(2, withlistId);
 
-			int autoId = 0;
-			ResultSet generatedKeys = pstmt.getGeneratedKeys();
-			if (generatedKeys.next()) {
-				autoId = generatedKeys.getInt(1);
-			} else {
-				throw new SQLException("Inserting user failed, no ID generated.");
-			}
+		if (pstmt.executeUpdate() != 1) {
+			throw new SQLException("Inserting user failed, no rows were affected");
+		}
 
-			connection.commit();
-			WithlistUser newWLUser = new WithlistUser(autoId, wluser.getWithlist_id(), wluser.getUser_id());
-			return newWLUser;
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}	
-		return null;
+		int autoId = 0;
+		ResultSet generatedKeys = pstmt.getGeneratedKeys();
+		if (generatedKeys.next()) {
+			autoId = generatedKeys.getInt(1);
+		} else {
+			throw new SQLException("Inserting user failed, no ID generated.");
+		}
+
+		pstmt.close();
+		connection.close();
+		WithlistUser newWLUser = new WithlistUser(autoId, withlistId, userId);
+		return newWLUser;
 	}
 }

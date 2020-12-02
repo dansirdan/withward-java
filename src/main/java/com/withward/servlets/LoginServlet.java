@@ -17,6 +17,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.log4j.Logger;
 
 import com.withward.service.UserService;
+import com.withward.DTO.UserDTO;
 import com.withward.model.User;
 
 /**
@@ -88,7 +89,7 @@ public class LoginServlet extends HttpServlet {
 				session.setAttribute("username", username);
 				session.setAttribute("password", password);
 
-				User userData = userService.getByUsername(username);
+				UserDTO userData = userService.getByUsername(username);
 				session.setAttribute("userId", userData.getId());
 				res.getWriter().append("YOU LOGGED IN");
 				res.setStatus(200);
