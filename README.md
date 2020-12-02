@@ -47,14 +47,14 @@ You will have to download the following in order to set up the app locally:
 1. setup tomcat
 
 - Manually:
-    - package into a war with maven:
-        > mvn clean package
-    - deploy to tomcat by copying the war to the `webapps` folder in Tomcat Directory
-    - run startup.sh/startup.bat in tomcat folder
-    - navigate to {/withward/tbd}
+  - package into a war with maven:
+    > mvn clean package
+  - deploy to tomcat by copying the war to the `webapps` folder in Tomcat Directory
+  - run startup.sh/startup.bat in tomcat folder
+  - navigate to {/withward/tbd}
 - IDE:
-    - setup tomcat to run virtually within your ide
-    - startup tomcat and navigate to {/withward/tbd}
+  - setup tomcat to run virtually within your ide
+  - startup tomcat and navigate to {/withward/tbd}
 
 ## Usage
 
@@ -64,11 +64,16 @@ Below you will find the various endpoints for the api. All requests stem from th
 - /withlists
 - /destinations
 - /login
+- /ratings
 
 ## Endpoints
 
-### POST /users/new
+## Users
+
+### POST /users
+
 This will create a new user in the database.
+
 ```
   {
     "username": "",
@@ -78,42 +83,127 @@ This will create a new user in the database.
   }
 ```
 
-### PUT /users/edit?{id}
+### PUT /users/{id}
+
 This is will edit a user in the database based on id.
 
-### DELETE /users/delete?{id}
+### DELETE /users/{id}
+
 Delete user by id from database.
 
-### GET /users/all
+### GET /users
+
 Returns an array of user objects.
 
-### GET /users?{id}
+```
+[
+    {
+        "id": 1,
+        "username": "user1",
+        "photo": "photoplaceholder"
+    },
+    {
+        "id": 2,
+        "username": "user2",
+        "photo": "photoplaceholder"
+    },
+    ...
+]
+```
+
+### GET /users/{id}
+
 Returns a single user object based on id.
 
-### POST /withlists/new
-This will create a new withlist in the database.
+```
+{
+    "id": 1,
+    "username": "user1",
+    "photo": "photoplaceholder"
+}
+```
+
+## Withlists
+
+### POST /withlists
+
+This will create a new withlist in the database. Must include user Id
+
 ```
   {
-	"title": "",
-	"description": ""
+    "ownerId": 4,
+	  "title": "Summer Time",
+	  "description": "All the things once summer is here..."
   }
 ```
 
-### PUT /withlists/edit?{id}
+### PUT /withlists/{id}
+
 This is will edit a withlist in the database based on id.
 
-### DELETE /withlists/delete?{id}
+### DELETE /withlists/{id}
+
 Delete withlist by id from database.
 
-### GET /withlists/all?{userid}
+### GET /withlists?{userid}
+
 Returns an array of withlist objects that belong to the user.
 
-### GET /withlists?{id}
+```
+[
+    {
+        "id": 6,
+        "ownerId": 6,
+        "title": "Hiking",
+        "description": "Hiking list to track hiking destinations."
+    },
+    {
+        "id": 7,
+        "ownerId": 6,
+        "title": "Swimming",
+        "description": "Got to get all those swims in."
+    },
+    ...
+]
+```
+
+### GET /withlists/{id}
+
 Returns a single withlist object based on id.
 
+```
+{
+    "id": 6,
+    "ownerId": 6,
+    "title": "Hiking",
+    "description": "Hiking list to track hiking destinations.",
+    "destinations": [
+        {
+            "id": 7,
+            "withlist_id": 6,
+            "name": "Trailhead1",
+            "description": "hike to the midpoint",
+            "photo": "placeholder",
+            "completed": false,
+            "averageRating": 0.0
+        }
+    ],
+    "users": [
+        {
+            "id": 6,
+            "username": "dansirdan",
+            "photo": "somefile.jpg - TBD"
+        }
+    ]
+}
+```
 
-### POST /destinations/new
+## Destinations
+
+### POST /destinations
+
 This will create a new destination in the database.
+
 ```
   {
 	"name": "",
@@ -122,23 +212,104 @@ This will create a new destination in the database.
   }
 ```
 
-### PUT /destinations/edit?{id}
+### PUT /destinations/{id}
+
 This is will edit a destination in the database based on id.
 
-### DELETE /destinations/delete?{id}
+### DELETE /destinations/{id}
+
 Delete destination by id from database.
 
-### GET /destinations/all?{withlistid}
+### GET /destinations?{withlist-id}
+
 Returns an array of destination objects that belong to a specific withlist.
 
-### GET /destinations?{id}
-Returns a single destination object based on id.
+```
+[
+    {
+        "id": 7,
+        "withlist_id": 6,
+        "name": "Trailhead1",
+        "description": "hike to the midpoint",
+        "photo": "placeholder",
+        "completed": false,
+        "averageRating": 0.0
+    }
+]
+```
 
+### GET /destinations/{id}?{withlist-id}
+
+Returns a single destination object based on id that includes an array of ratings objects.
+
+```
+{
+    "id": 7,
+    "withlist_id": 6,
+    "name": "Trailhead1",
+    "description": "hike to the midpoint",
+    "photo": "placeholder",
+    "completed": true,
+    "averageRating": 4.0,
+    "ratings": [
+        {
+            "id": 4,
+            "destination_id": 7,
+            "user_id": 6,
+            "rating": 4.0
+        }
+    ]
+}
+```
+
+## DestinationRatings (Ratings)
+
+### POST /ratings
+
+This will create a new rating in the database.
+
+```
+{
+    "destination_id": 7,
+    "user_id": 6,
+    "rating": 4.0
+}
+```
+
+### PUT /ratings/{id}
+
+This is will edit a rating in the database based on id.
+
+### GET /ratings/{id}
+
+Returns a rating object that belong to a specific withlist.
+
+```
+{
+    "id": 4,
+    "destination_id": 7,
+    "user_id": 6,
+    "rating": 4.0
+}
+```
+
+## WithlistUsers (Members)
+### POST /members
+
+This will create a new member in the database.
+
+```
+{
+    "user-id": 6,
+    "withlist-id": 6
+}
+```
 ## Tests
 
 ```
 While in the root folder of the project, run:
 ```
+
 > mvn test
 
 ## Credits

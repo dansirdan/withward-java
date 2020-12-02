@@ -39,7 +39,7 @@
 		<servlet-name>WithlistUser</servlet-name>
 		<display-name>WithlistUser</display-name>
 		<description></description>
-		<servlet-class>com.withward.servlets.WithlistUser</servlet-class>
+		<servlet-class>com.withward.servlets.WithlistUserServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>UserServlet</servlet-name>
@@ -63,6 +63,6 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>WithlistUser</servlet-name>
-		<url-pattern>/withlistuser/*</url-pattern>
+		<url-pattern>/members/*</url-pattern>
 	</servlet-mapping>
 </web-app>

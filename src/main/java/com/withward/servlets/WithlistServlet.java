@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.withward.DTO.WithlistDTO;
 import com.withward.model.Withlist;
+import com.withward.model.WithlistUser;
 import com.withward.service.UserService;
 import com.withward.service.WithlistService;
 
@@ -44,6 +45,8 @@ public class WithlistServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
 	 *      response)
+	 *      
+	 *      
 	 */
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		logger.info("GET request made to " + req.getRequestURI());
@@ -53,11 +56,11 @@ public class WithlistServlet extends HttpServlet {
 		if (session != null) {
 			if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
 				try {
-					Integer id = Integer.parseInt(req.getPathInfo().split("/")[1]);
+					Integer withlistId = Integer.parseInt(req.getPathInfo().split("/")[1]);
 					Integer sessionId = Integer.parseInt(session.getAttribute("userId").toString());
 
-					if (withlistService.isMember(sessionId, id)) {							
-						WithlistDTO withlist = withlistService.getOneWithlist(id);
+					if (withlistService.isMember(sessionId, withlistId)) {							
+						WithlistDTO withlist = withlistService.getOneWithlist(withlistId);
 						if (withlist != null) {														
 							objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 							String json = objectMapper.writeValueAsString(withlist);
@@ -152,12 +155,14 @@ public class WithlistServlet extends HttpServlet {
 						&& withlistData.getOwnerId() != null) {
 					if (userService.isSessionUserAuthorizedorAdmin(session, withlistData.getOwnerId())) {						
 						Withlist withlist = withlistService.createWithlist(withlistData);
-						if (withlist != null) {
-							String insertedUserJSON = objectMapper.writeValueAsString(withlist);
+						WithlistUser wlUser = withlistService.addUserToWithlist(withlist.getOwnerId(), withlist.getId());
+						if (withlist != null && wlUser != null) {
 							
-							res.getWriter().append(insertedUserJSON);
-							res.setContentType("application/json");
-							res.setStatus(201);
+								String insertedUserJSON = objectMapper.writeValueAsString(withlist);
+								res.getWriter().append(insertedUserJSON);
+								res.setContentType("application/json");
+								res.setStatus(201);
+
 						} else {
 							res.setStatus(400);
 						}

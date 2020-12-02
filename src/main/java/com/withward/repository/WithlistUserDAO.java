@@ -58,8 +58,8 @@ public class WithlistUserDAO {
 		Connection connection = JDBC.getConnection();
 		PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-		pstmt.setInt(1, userId);
-		pstmt.setInt(2, withlistId);
+		pstmt.setInt(1, withlistId);
+		pstmt.setInt(2, userId);
 
 		WithlistUser newWLUser = null;
 		if (pstmt.executeUpdate() != 1) {

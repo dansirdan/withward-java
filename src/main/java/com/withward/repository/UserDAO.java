@@ -57,28 +57,33 @@ public class UserDAO {
 
 		PreparedStatement pstmt = connection.prepareStatement(sql);
 		pstmt.setString(1, username);
-		ResultSet resultSet = pstmt.executeQuery();
-		resultSet.next();
-		salt = resultSet.getBytes("user_salt");
-		hashedPassword = resultSet.getString("user_password");
-		pstmt.close();
-		connection.close();
-		if (hashedPassword.equals(sha.hashingMethod(password, salt))) {
-			return true;
-		} else {
-			return false;
+		ResultSet rs = pstmt.executeQuery();
+		while (rs.next()) {
+			salt = rs.getBytes("user_salt");
+			hashedPassword = rs.getString("user_password");
+			if (hashedPassword.equals(sha.hashingMethod(password, salt))) {
+				pstmt.close();
+				connection.close();
+				return true;
+			} else {
+				pstmt.close();
+				connection.close();
+				return false;
+			}
 		}
+		return false;
 	}
 	
 	public boolean authAdmin(String username) throws SQLException {
 		String sql = "SELECT is_admin FROM users WHERE username = ?";
 		Connection connection = JDBC.getConnection();
-
+		Boolean isAdmin = false;
 		PreparedStatement pstmt = connection.prepareStatement(sql);
 		pstmt.setString(1, username);
-		ResultSet resultSet = pstmt.executeQuery();
-		resultSet.next();
-		Boolean isAdmin = resultSet.getBoolean("is_admin");
+		ResultSet rs = pstmt.executeQuery();
+		while (rs.next()) {
+			isAdmin = rs.getBoolean("is_admin");
+		}
 		pstmt.close();
 		connection.close();
 		return isAdmin;

@@ -74,6 +74,7 @@ public class LoginServlet extends HttpServlet {
 		if (req.getPathInfo() != null && req.getPathInfo().split("/").length == 2) {
 			try {
 				String authLogin = req.getPathInfo().split("/")[1];
+				logger.debug("authLogin");
 				if (authLogin.equals("admin")) {
 					User loginData = objectMapper.readValue(jsonString, User.class);
 					String username = loginData.getUsername();
