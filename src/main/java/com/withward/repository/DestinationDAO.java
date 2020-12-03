@@ -102,6 +102,8 @@ public class DestinationDAO {
 		pstmt.setBoolean(5, false);
 		pstmt.setFloat(6, destination.getAverageRating());
 
+		Destination newDestination = null;
+		
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("No Rows Affected");
 		}
@@ -110,14 +112,15 @@ public class DestinationDAO {
 		ResultSet generatedKeys = pstmt.getGeneratedKeys();
 		if (generatedKeys.next()) {
 			autoId = generatedKeys.getInt(1);
+			newDestination = new Destination(autoId, destination.getWithlist_id(), destination.getName(),
+					destination.getDescription(), destination.getPhoto(), destination.isCompleted(),
+					destination.getAverageRating());
 		} else {
 			throw new SQLException("ID generation failed");
 		}
 		pstmt.close();
 		connection.close();
-		return new Destination(autoId, destination.getWithlist_id(), destination.getName(),
-				destination.getDescription(), destination.getPhoto(), destination.isCompleted(),
-				destination.getAverageRating());
+		return newDestination;
 
 	}
 
@@ -142,15 +145,19 @@ public class DestinationDAO {
 		pstmt.setFloat(5, destination.getAverageRating());
 		pstmt.setInt(6, id);
 
+		Destination updateDestination = null;
+
 		if (pstmt.executeUpdate() != 1) {
 			throw new SQLException("No Rows Affected");
+		} else {
+			updateDestination = new Destination(id, destination.getWithlist_id(), destination.getName(), destination.getDescription(),
+					destination.getPhoto(), destination.isCompleted(), destination.getAverageRating());
 		}
 
 		pstmt.close();
 		connection.close();
 
-		return new Destination(id, destination.getWithlist_id(), destination.getName(), destination.getDescription(),
-				destination.getPhoto(), destination.isCompleted(), destination.getAverageRating());
+		return updateDestination;
 	}
 
 	/**
