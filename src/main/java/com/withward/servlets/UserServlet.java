@@ -155,7 +155,6 @@ public class UserServlet extends HttpServlet {
 			e.printStackTrace();
 		} catch (SQLException e) {
 			res.setStatus(400);
-			res.getWriter().append(System.getProperty("DB_NAME"));
 			e.printStackTrace();
 		}
 
