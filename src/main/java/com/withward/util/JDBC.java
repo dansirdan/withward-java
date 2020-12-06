@@ -11,9 +11,9 @@ public class JDBC {
 		Connection c = null;
 		DriverManager.registerDriver(new Driver());
 		
-		String connUrl = System.getenv("DB_URL");
-		String connUser = System.getenv("DB_USERNAME");
-		String connPass = System.getenv("DB_PASSWORD");
+		String connUrl = System.getenv("$DB_URL");
+		String connUser = System.getenv("$DB_USERNAME");
+		String connPass = System.getenv("$DB_PASSWORD");
 
 		
 		c = DriverManager.getConnection(connUrl, connUser, connPass);
